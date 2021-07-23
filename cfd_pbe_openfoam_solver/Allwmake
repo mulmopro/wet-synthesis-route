@@ -1,0 +1,22 @@
+#!/bin/sh
+cd ${0%/*} || exit 1    # Run from this directory
+
+# Parse arguments for library compilation
+. $WM_PROJECT_DIR/wmake/scripts/AllwmakeParseArguments
+
+cd lapack/
+make
+mv liblapack.so $FOAM_USER_LIBBIN
+cd ..
+
+export SUNDIAL_SRC=/usr/local/include
+export SUNDIAL_LIB=/usr/local/lib
+
+wmakeLnInclude solutionNMC
+wmakeLnInclude populationBalance
+wmake $targetType solutionNMC
+wmake $targetType populationBalance
+wmake $targetType
+
+#------------------------------------------------------------------------------
+

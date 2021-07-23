@@ -1,0 +1,138 @@
+/*---------------------------------------------------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     |
+    \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
+     \\/     M anipulation  |
+-------------------------------------------------------------------------------
+License
+    This file is part of OpenFOAM.
+
+    OpenFOAM is free software: you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+    for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+
+Class
+    Foam::inversionAlgorithm
+
+Description
+
+SourceFiles
+    inversionAlgorithm.C
+    newInversionAlgorithm.C
+
+\*---------------------------------------------------------------------------*/
+
+#ifndef inversionAlgorithm_H
+#define inversionAlgorithm_H
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#include "populationBalance.H"
+#include "quadratureMethod.H"
+
+namespace Foam
+{
+
+/*---------------------------------------------------------------------------*\
+                           Class inversionAlgorithm Declaration
+\*---------------------------------------------------------------------------*/
+
+class inversionAlgorithm
+{
+protected:
+
+    // Protected data
+
+        //- Reference to the moments
+        const PtrList<volScalarField>& moments_;
+
+        //- Reference to the diameters for invalid cells
+        const List<scalar>& dSmall_;
+
+        //- Reference to the number of nodes
+        const uint8_t& numOfNodes_;
+
+        //- Reference to nodes of the NDF
+        PtrList<volScalarField>& nodes_;
+
+        //- Reference to weights of the NDF
+        PtrList<volScalarField>& weights_;
+
+        //- Node reduction based on the zeta values
+        bool nodeReduction(const List<scalar>&, int&);
+
+public:
+
+    //- Runtime type information
+    TypeName("inversionAlgorithm");
+
+
+    // Declare runtime construction
+
+        declareRunTimeSelectionTable
+        (
+            autoPtr,
+            inversionAlgorithm,
+            populationBalance,
+            (
+                const populationBalance& pb,
+                PtrList<volScalarField>& nodes,
+                PtrList<volScalarField>& weights
+            ),
+            (pb, nodes, weights)
+        );
+
+    // Constructors
+
+        inversionAlgorithm
+        (
+            const populationBalance& pb,
+            PtrList<volScalarField>& nodes,
+            PtrList<volScalarField>& weights
+        );
+
+
+    //- Destructor
+    virtual ~inversionAlgorithm();
+
+
+    // Selectors
+
+        static autoPtr<inversionAlgorithm> New
+        (
+            const populationBalance& pb,
+            PtrList<volScalarField>& nodes,
+            PtrList<volScalarField>& weights
+        );
+
+
+    // Member Functions
+
+        //- Calculates nodes and weights of the reconstructed NDF
+        virtual void inversion(const Field<scalar>&) = 0;
+
+        //- Calculates nodes and weights of the reconstructed NDF on the
+        //- fixed value boundaries
+        virtual void inversionBoundary() = 0;
+};
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
+
+// ************************************************************************* //

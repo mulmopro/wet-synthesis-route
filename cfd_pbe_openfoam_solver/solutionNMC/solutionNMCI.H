@@ -1,0 +1,133 @@
+/*---------------------------------------------------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     |
+    \\  /    A nd           | Copyright (C) 2014-2015 OpenFOAM Foundation
+     \\/     M anipulation  |
+-------------------------------------------------------------------------------
+License
+    This file is part of OpenFOAM.
+
+    OpenFOAM is free software: you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+    for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+
+\*---------------------------------------------------------------------------*/
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+inline const Foam::fvMesh& Foam::solutionNMC::mesh() const
+{
+    return mesh_;
+}
+
+
+inline const Foam::label& Foam::solutionNMC::nMetals() const
+{
+    return nMetals_;
+}
+
+
+inline const Foam::scalar& Foam::solutionNMC::effectiveConc() const
+{
+    return effectiveConc_;
+}
+
+
+inline Foam::PtrList<Foam::volScalarField>&
+Foam::solutionNMC::totalMetalConcs()
+{
+    return totalMetalConcs_;
+}
+
+
+inline const Foam::PtrList<Foam::volScalarField>&
+Foam::solutionNMC::totalMetalConcs() const
+{
+    return totalMetalConcs_;
+}
+
+
+inline const Foam::volScalarField& Foam::solutionNMC::totalNH3() const
+{
+    return totalNH3_;
+}
+
+
+inline const Foam::volScalarField& Foam::solutionNMC::inertCharges() const
+{
+    return inertCharges_;
+}
+
+
+inline const Foam::PtrList<Foam::DimensionedField<Foam::scalar, Foam::volMesh>>&
+Foam::solutionNMC::metalCationConcs() const
+{
+    return metalCationConcs_;
+}
+
+
+inline const Foam::Field<Foam::scalar>& Foam::solutionNMC::activeCellsField()
+const
+{
+    return activeCellsField_;
+}
+
+
+inline const Foam::DimensionedField<Foam::scalar, Foam::volMesh>&
+Foam::solutionNMC::NH3() const
+{
+    return NH3_;
+}
+
+
+inline const Foam::DimensionedField<Foam::scalar, Foam::volMesh>&
+Foam::solutionNMC::OH() const
+{
+    return OH_;
+}
+
+
+inline const Foam::DimensionedField<Foam::scalar, Foam::volMesh>&
+Foam::solutionNMC::pH() const
+{
+    return pH_;
+}
+
+
+inline const Foam::DimensionedField<Foam::scalar, Foam::volMesh>&
+Foam::solutionNMC::superSat() const
+{
+    return superSat_;
+}
+
+
+inline const Foam::PtrList<Foam::DimensionedField<Foam::scalar, Foam::volMesh>>&
+Foam::solutionNMC::cationConcRatios() const
+{
+    return cationConcRatios_;
+}
+
+
+inline const Foam::surfaceScalarField& Foam::solutionNMC::phi() const
+{
+    return phi_;;
+}
+
+
+inline const Foam::incompressible::momentumTransportModel&
+Foam::solutionNMC::turbulence() const
+{
+    return turbulence_;
+}
+
+// ************************************************************************* //

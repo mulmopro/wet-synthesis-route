@@ -1,0 +1,4 @@
+odeSolver/odeSolver.C
+pisoPrecNMC.C
+
+EXE = $(FOAM_USER_APPBIN)/pisoPrecNMC
