@@ -187,3 +187,6 @@ reconstructNDF.py
 # OpenFOAM compilation folders
 linux64GccDPInt32Opt
 lnInclude
+
+# lapack library
+lapack
