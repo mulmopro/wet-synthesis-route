@@ -1,0 +1,4 @@
+CSOURCES= precNMC_adjust.c precNMC_sources.c
+HSOURCES= chemicalEquilibria.h defMacros.h externFuncs.h externVars.h momentCalc.h particleProcesses.h
+FLUENT_INC=/share/apps/ansys/2020r2/v202/fluent
+GPU_SUPPORT=off

@@ -1,0 +1,14 @@
+/file/set-tui-version "20.2"
+/file/read-case-data "S24_micromixing.cas.gz"
+/file/read-macros "precNMC.scm"
+
+/file/start-transcript "S24_meanValues.out"
+
+/report/volume-integrals/maximum 4 () supersat no
+
+(outlet-values)
+
+/file/stop-transcript
+
+/exit
+

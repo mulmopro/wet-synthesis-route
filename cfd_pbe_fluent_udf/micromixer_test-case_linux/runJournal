@@ -1,0 +1,53 @@
+/file/set-tui-version "20.2"
+/file/read-case-data "flow_newMesh.cas.gz"
+/file/read-macros "precNMC.scm"
+
+(create-region)
+(setparameters '(aggregation/c-t aggregation/a-p) '(1.438798578 1e4))
+(setparameters '(env_conc/ni env_conc/mn env_conc/co env_conc/nh3 env_conc/na env_conc/so4) '(0.08 0.01 0.01 0.1 0.1 0.1))
+(initialize-precNMC)
+(sourceterm "all")
+
+(relaxfactor 1e-6 '(0 1 2 3 4 5 6 7 8 9 10 11 12))
+/solve/iterate 5000
+
+(relaxfactor 1e-5 '(0 1 2 3 4 5 6 7 8 9 10 11 12))
+/solve/iterate 5000
+
+(relaxfactor 1e-4 '(0 1 2 3 4 5 6 7 8 9 10 11 12))
+/solve/iterate 5000
+
+(relaxfactor 1e-3 '(0 1 2 3 4 5 6 7 8 9 10 11 12))
+/solve/iterate 10000
+
+/file/write-case-data "S24_micromixing.cas.gz"
+
+(relaxfactor 1e-2 '(0 1 2 3 4 5 6 7 8 9 10 11 12))
+/solve/iterate 10000
+
+/file/write-case-data "S24_micromixing.cas.gz" ok
+
+(relaxfactor 4e-2 '(0 1 2 3 4 5 6 7 8 9 10 11 12))
+/solve/iterate 5000
+
+/file/write-case-data "S24_micromixing.cas.gz" ok
+
+(relaxfactor 7e-2 '(0 1 2 3 4 5 6 7 8 9 10 11 12))
+/solve/iterate 5000
+
+/file/write-case-data "S24_micromixing.cas.gz" ok
+
+(relaxfactor 1e-1 '(0 1 2 3 4 5 6 7 8 9 10 11 12))
+/solve/iterate 10000
+
+/file/write-case-data "S24_micromixing.cas.gz" ok
+
+(relaxfactor 2e-1 '(0 1 2 3 4 5 6 7 8 9 10 11 12))
+/solve/iterate 5000
+
+/file/write-case-data "S24_micromixing.cas.gz" ok
+
+(relaxfactor 4e-1 '(0 1 2 3 4 5 6 7 8 9 10 11 12))
+/solve/iterate 15000
+
+/file/write-case-data "S24_micromixing.cas.gz" ok
