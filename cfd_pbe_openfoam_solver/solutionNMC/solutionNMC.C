@@ -372,7 +372,7 @@ void Foam::solutionNMC::update(const realtype *y, UserData *aux_data,
     int ipiv[nComps_];
 
     scalar error, equilConc, totalConc, cationTotalConc, cationConcRatio,
-        cationConc, conc_OH, conc_Na, k_sp_NMC, powConcs_NMC, value;
+        cationConc, conc_OH, conc_Na, k_sp_NMC, powConcs_NMC;
 
     Switch validConc(true);
 
@@ -381,15 +381,15 @@ void Foam::solutionNMC::update(const realtype *y, UserData *aux_data,
 
     for (i=0; i<nMetals_; i++)
     {
-        value = y[i];
+        totalConc = y[i];
 
-        if (value < effectiveConc_)
+        if (totalConc < effectiveConc_)
         {
             validConc = false;
             break;
         }
 
-        totalConcs[i] = value;
+        totalConcs[i] = totalConc;
     }
 
     if (validConc)
@@ -594,7 +594,7 @@ void Foam::solutionNMC::update()
     int ipiv[nComps_];
 
     scalar error, equilConc, totalConc, cationTotalConc, cationConcRatio,
-        cationConc, conc_OH, conc_Na, k_sp_NMC, powConcs_NMC, value;
+        cationConc, conc_OH, conc_Na, k_sp_NMC, powConcs_NMC;
 
     Switch validConc;
 
@@ -606,27 +606,32 @@ void Foam::solutionNMC::update()
         if (activeCellsField_[celli] > 0)
         {
             validConc = true;
+            cationTotalConc = 0.0;
             for (i=0; i<nMetals_; i++)
             {
-                value = totalMetalConcs_[i][celli];
+                totalConc = totalMetalConcs_[i][celli];
 
-                if (value < effectiveConc_)
+                if (totalConc < effectiveConc_)
                 {
                     validConc = false;
-                    break;
+                    // break;
                 }
 
-                totalConcs[i] = value;
+                totalConcs[i] = totalConc;
+                cationTotalConc += totalConc;
             }
+
+            totalConcs[indexNH3_] = totalNH3_[celli];
+            totalConcs[indexOH_] = inertCharges_[celli];
 
             if (validConc)
             {
-                totalConcs[indexNH3_] = totalNH3_[celli];
-                totalConcs[indexOH_] = inertCharges_[celli];
+                // totalConcs[indexNH3_] = totalNH3_[celli];
+                // totalConcs[indexOH_] = inertCharges_[celli];
 
                 if (totalConcs[indexNH3_] > effectiveConc_)
                 {
-                    cationTotalConc = 0.0;
+                    // cationTotalConc = 0.0;
                     for (i=0; i<nMetals_; i++)
                     {
                         equilConc = metalCationConcs_[i][celli];
@@ -639,7 +644,7 @@ void Foam::solutionNMC::update()
                         {
                             pConcs[i] = -1.0*Foam::log10(totalConc);
                         }
-                        cationTotalConc += totalConc;
+                        // cationTotalConc += totalConc;
                     }
 
                     equilConc = OH_[celli];
@@ -757,11 +762,11 @@ void Foam::solutionNMC::update()
                 {
                     NH3_[celli] = totalConcs[indexNH3_];
 
-                    cationTotalConc = 0.0;
-                    for (i=0; i<nMetals_; i++)
-                    {
-                        cationTotalConc += totalConcs[i];
-                    }
+                    // cationTotalConc = 0.0;
+                    // for (i=0; i<nMetals_; i++)
+                    // {
+                    //     cationTotalConc += totalConcs[i];
+                    // }
 
                     conc_OH = totalConcs[indexOH_] + 2*cationTotalConc;
 
@@ -811,9 +816,28 @@ void Foam::solutionNMC::update()
                     cationConcRatios_[j][celli] = 0.0;
                 }
                 NH3_[celli] = 0.0;
+
+                superSat_[celli] = 1.0;
+
+                conc_OH =
+                    (
+                        Foam::sqrt
+                        (
+                            4
+                            *(
+                                kw_
+                                +   Foam::max
+                                    (
+                                        Kb_NH3_*totalConcs[indexNH3_], 0.0
+                                    )
+                            )
+                            + Foam::sqr(totalConcs[indexOH_])
+                        )
+                        + totalConcs[indexOH_]
+                    ) / 2.0;
+
                 OH_[celli] = 0.0;
-                superSat_[celli] = 0.0;
-                pH_[celli] = 0.0;
+                pH_[celli] = 14 + Foam::log10(conc_OH);
             }
         }
         else // cell is not in the chemically active zone

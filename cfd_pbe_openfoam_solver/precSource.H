@@ -64,6 +64,7 @@ forAll(activeCellsField, celli)
             aux_data->concNH3 = NH3[celli];
             aux_data->concOH = OH[celli];
             aux_data->superSat = 0.0;
+            aux_data->effectiveConc = effectiveConc;
 
             try
             {
@@ -92,7 +93,3 @@ forAll(activeCellsField, celli)
         delete[] y;
     }
 }
-
-solution_nmc.correct();
-pb_ref.correct();
-solution_nmc.update();

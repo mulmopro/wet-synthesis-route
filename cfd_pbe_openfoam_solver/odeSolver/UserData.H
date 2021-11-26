@@ -52,7 +52,7 @@ struct UserData{
     {}
     label cell_id, nMetals, nMoments;
     realtype superSat, totalNH3, inertCharges, concNH3, concOH;
-    realtype kv, crystalRho, crystalMW;
+    realtype kv, crystalRho, crystalMW, effectiveConc;
     realtype metalCationConcs[3];
     solutionNMC& solution_;
     const growthModel& growth_;

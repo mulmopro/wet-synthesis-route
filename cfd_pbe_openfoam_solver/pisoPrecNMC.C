@@ -90,8 +90,14 @@ int main(int argc, char *argv[])
             pb->transport_moments();
             solution_nmc.transport_species();
 
+            // update the pH and equilibrium concentrations after the transport
+            solution_nmc.update();
+
             // Precipitation is included by using the operator-splitting method
             #include "precSource.H"
+
+            solution_nmc.correct();
+            pb_ref.correct();
         }
 
         runTime.write();

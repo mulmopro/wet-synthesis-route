@@ -65,6 +65,13 @@ class odeSolver
         //- initial step size
         realtype maxStepSize_;
 
+        //- CVODE constraint N_Vector for variables
+        N_Vector constraints_;
+
+        //- Exception to terminate the integration
+        //  when metal concentration is low
+        struct lowMetalConcException {};
+
     // Private member functions
 
 public:

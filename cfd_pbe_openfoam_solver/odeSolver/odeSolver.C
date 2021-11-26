@@ -36,10 +36,10 @@ int Foam::odeSolver::odeEqs
     realtype t, N_Vector y, N_Vector ydot, void *user_data
 )
 {
-    int i;
+    int i, j;
     label nMetals, nMoments;
     realtype superSat, growthRate, nucRate, nucSize, precRate, kv, crystalRho,
-        crystalMW;
+        crystalMW, effectiveConc, y_data_i;
     realtype cationConcRatios[3];
     realtype *y_data, *ydot_data;
     UserData *aux_data;
@@ -48,6 +48,36 @@ int Foam::odeSolver::odeEqs
     ydot_data = N_VGetArrayPointer(ydot);
 
     aux_data = static_cast<UserData*>(user_data);
+
+    // if (aux_data->cell_id == )
+    // {
+    //     Info<<"time: "<<t<<endl
+    //         <<"y_data: "<<y_data[0]<<" "<<y_data[1]<<" "<<y_data[2]<<endl;
+    // }
+
+    nMetals = aux_data->nMetals;
+    nMoments = aux_data->nMoments;
+
+    effectiveConc = aux_data->effectiveConc;
+
+    for (i=0; i<nMetals; i++)
+    {
+        y_data_i = y_data[i];
+
+        if (!(y_data_i > 0.0))
+        {
+            for(j=0; j < nMetals + nMoments; j++)
+            {
+                ydot_data[j] = 0.0;
+            }
+
+            return (0);
+        }
+        else if (!(y_data_i > effectiveConc))
+        {
+            throw lowMetalConcException{};
+        }
+    }
 
     aux_data->solution_.update(y_data, aux_data, cationConcRatios);
 
@@ -58,9 +88,6 @@ int Foam::odeSolver::odeEqs
     growthRate = aux_data->growth_.rate(superSat);
     nucRate = aux_data->nucRate_.rate(superSat);
     nucSize = aux_data->nucleateSize_.size(superSat);
-
-    nMetals = aux_data->nMetals;
-    nMoments = aux_data->nMoments;
 
     kv = aux_data->kv;
     crystalRho = aux_data->crystalRho;
@@ -180,6 +207,23 @@ Foam::odeSolver::odeSolver
                 << exit(FatalError);
         }
     }
+
+    constraints_ = NULL;
+    constraints_ = N_VNew_Serial(N_);
+
+    realtype *constraints_data;
+
+    constraints_data = N_VGetArrayPointer(constraints_);
+
+    for (i = 0; i < solution.nMetals() ; i++)
+    {
+        constraints_data[i] = 2.0;
+    }
+
+    for (i = solution.nMetals(); i < pb.numOfMoments(); i++)
+    {
+        constraints_data[i] = 0.0;
+    }
 }
 
 
@@ -188,6 +232,7 @@ Foam::odeSolver::odeSolver
 Foam::odeSolver::~odeSolver()
 {
     N_VDestroy(absTol_);
+    N_VDestroy(constraints_);
 }
 
 
@@ -252,6 +297,8 @@ void Foam::odeSolver::solve(realtype *y, realtype t0, realtype tout,
 
         flag = CVodeSetMaxStep(cvode_mem, maxStepSize_);
 
+        flag = CVodeSetConstraints(cvode_mem, constraints_);
+
         // Info<<"end time: "<< tout <<endl;
         
         // The same matrix y0 is used for the output
@@ -261,6 +308,15 @@ void Foam::odeSolver::solve(realtype *y, realtype t0, realtype tout,
 
         // Info<<"return flag: "<< flag <<endl;
         // Info<<"initial data "<< yout_data[0] <<endl;
+
+        for (i = 0; i < N_; i++)
+        {
+            y[i] = yout_data[i];
+        }
+    }
+    catch(lowMetalConcException)
+    {
+        yout_data = N_VGetArrayPointer(yout);
 
         for (i = 0; i < N_; i++)
         {

@@ -6,6 +6,8 @@ tmp<fv::convectionScheme<scalar>> mvConv
     )
 );
 
+volScalarField Dturb = turbulence_.nut();
+
 // Loop over moments to define their corresponding moment equations
 forAll(moments_, momenti)
 {
@@ -42,6 +44,7 @@ forAll(moments_, momenti)
     //   + fvm::div(phi_, M)
     //   +  mvConv->fvcDiv(phi_, M)
       + mvConv->fvmDiv(phi_, M)
+      - fvm::laplacian(Dturb, M)
       ==
         sourceM
     );
@@ -62,6 +65,6 @@ forAll(moments_, momenti)
     //     << "  Max(" << M.name() << ") = " << max(M).value()
     //     << endl;
 
-    // M.max(0);
+    M.max(0);
     // M.correctBoundaryConditions();
 }
