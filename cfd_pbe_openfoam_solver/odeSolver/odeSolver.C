@@ -220,7 +220,7 @@ Foam::odeSolver::odeSolver
         constraints_data[i] = 2.0;
     }
 
-    for (i = solution.nMetals(); i < pb.numOfMoments(); i++)
+    for (i = solution.nMetals(); i < N_; i++)
     {
         constraints_data[i] = 0.0;
     }
