@@ -75,7 +75,7 @@ int threadOut_ID[1] = {86}; /* IDs of the inlet and outlet boundaries assigned b
 /*****************************************************************************/
 
 
-DEFINE_ON_DEMAND(net_react_extr_copy)
+DEFINE_ON_DEMAND(net_react_extr)
 {
     if (compute_node_count > 1)
     {
@@ -113,7 +113,7 @@ DEFINE_ON_DEMAND(net_react_extr_copy)
 
             real *bToi_mFlux; /* A 1-D array to keep the positive mass flux
             from boundaries to reaction zone "i". */
-           
+
             int n_connectivity; /* Number of elements needed to keep the connectivity
             between the pairs (i, j) of the reaction zones */
 
@@ -143,7 +143,7 @@ DEFINE_ON_DEMAND(net_react_extr_copy)
             in the reaction zones */
             real *react_zone_skew; /* An array to keep the skewness of cell values
             of a selected variable in the reaction zones */
-            float *react_zone_vol; /* An array to keep the volume of
+            real *react_zone_vol; /* An array to keep the volume of
             the reaction zones */
             real *react_zone_rho; /* An array to keep the density of
             the reaction zones */
@@ -480,7 +480,16 @@ DEFINE_ON_DEMAND(net_react_extr_copy)
                 if (onBoundary[i])
                 {
                     mapped_index = i * n_react_zone + i;
-                    react_zone_contErr[i] += bToi_mFlux[i] - iToj_mFlux[mapped_index];
+                    react_zone_contErr[i] -= iToj_mFlux[mapped_index];
+                }
+            }
+
+            for (j = 0; j < n_InThread; j++)
+            {
+                for (i = 0; i < n_react_zone; i++)
+                {
+                    react_zone_contErr[i] += bToi_mFlux[i + n_react_zone * j];
+                    
                 }
             }
 
