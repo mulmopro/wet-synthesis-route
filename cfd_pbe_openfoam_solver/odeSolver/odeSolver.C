@@ -71,7 +71,7 @@ int Foam::odeSolver::odeEqs
                 ydot_data[j] = 0.0;
             }
 
-            return (0);
+            return (1);
         }
         else if (!(y_data_i > effectiveConc))
         {
@@ -211,19 +211,21 @@ Foam::odeSolver::odeSolver
     constraints_ = NULL;
     constraints_ = N_VNew_Serial(N_);
 
-    realtype *constraints_data;
+    N_VConst(1.0, constraints_);
 
-    constraints_data = N_VGetArrayPointer(constraints_);
+    // realtype *constraints_data;
 
-    for (i = 0; i < solution.nMetals() ; i++)
-    {
-        constraints_data[i] = 2.0;
-    }
+    // constraints_data = N_VGetArrayPointer(constraints_);
 
-    for (i = solution.nMetals(); i < N_; i++)
-    {
-        constraints_data[i] = 0.0;
-    }
+    // for (i = 0; i < solution.nMetals() ; i++)
+    // {
+    //     constraints_data[i] = 2.0;
+    // }
+
+    // for (i = solution.nMetals(); i < N_; i++)
+    // {
+    //     constraints_data[i] = 0.0;
+    // }
 }
 
 
@@ -278,15 +280,23 @@ void Foam::odeSolver::solve(realtype *y, realtype t0, realtype tout,
         }
 
         flag = CVodeSetUserData(cvode_mem, aux_data);
+        // if (flag != CV_SUCCESS){
+        //     Info << "Error CVodeSetUserData" << endl; throw;}
 
         // Info<<"start time: "<< t0 <<endl;
         // Info<<"initial data "<< y0_data[0] <<endl;
 
         flag = CVodeInit(cvode_mem, odeEqs, t0, y0);
+        // if (flag != CV_SUCCESS){
+        //     Info << "Error CVodeInit" << endl; throw;}
 
         flag = CVodeSVtolerances(cvode_mem, relTol_, absTol_);
+        // if (flag != CV_SUCCESS){
+        //     Info << "Error CVodeSVtolerances" << endl; throw;}
 
         flag = CVodeSetLinearSolver(cvode_mem, LS, J);
+        // if (flag != CVLS_SUCCESS){
+        //     Info << "Error CVodeSetLinearSolver" << endl; throw;}
 
         // flag = CVodeSetJacFn(cvode_mem, Jacobian);
 
@@ -294,15 +304,26 @@ void Foam::odeSolver::solve(realtype *y, realtype t0, realtype tout,
         // flag = CVodeSetMaxNumSteps(cvode_mem, mxsteps);
 
         flag = CVodeSetInitStep(cvode_mem, initialStepSize_);
+        // if (flag != CV_SUCCESS){
+        //     Info << "Error CVodeSetInitStep" << endl; throw;}
 
         flag = CVodeSetMaxStep(cvode_mem, maxStepSize_);
+        // if (flag != CV_SUCCESS){
+        //     Info << "Error CVodeSetMaxStep" << endl; throw;}
 
-        flag = CVodeSetConstraints(cvode_mem, constraints_);
+        // flag = CVodeSetConstraints(cvode_mem, constraints_);
+        // if (flag != CV_SUCCESS){
+        //     Info << "Error CVodeSetConstraints" << endl; throw;}
 
         // Info<<"end time: "<< tout <<endl;
         
         // The same matrix y0 is used for the output
         flag = CVode(cvode_mem, tout, yout, &t_reached, CV_NORMAL);
+
+        // if (aux_data->cell_id == )
+        // {
+        //     Info << "flag: "<< flag << endl;
+        // }
 
         yout_data = N_VGetArrayPointer(yout);
 
@@ -350,6 +371,45 @@ bool Foam::odeSolver::read()
         this->lookup("initialStepSize") >> initialStepSize_;
 
         this->lookup("maxStepSize") >> maxStepSize_;
+
+        this->lookup("relTol") >> relTol_;
+
+        int i;
+        ITstream is(this->lookup("absTol"));
+
+        realtype *absTol_data;
+
+        absTol_data = N_VGetArrayPointer(absTol_);
+
+        if (is.nRemainingTokens() == is.tokenIndex() + 1)
+        {
+            scalar absTolScalar(readScalar(is));
+
+            for (i = 0; i < N_; i++)
+            {
+                absTol_data[i] = absTolScalar;
+            }
+        }
+        else
+        {
+            List<scalar> absTolList(is);
+
+            if (absTolList.size() == N_)
+            {
+                for (i = 0; i < N_; i++)
+                {
+                    absTol_data[i] = absTolList[i];
+                }
+            }
+            else
+            {
+                WarningInFunction
+                    << "Updating absolute tolerances failed!" << endl
+                    << "Number of absolute tolerances should be " << N_
+                    << endl << absTolList.size() << " are specified"
+                    << endl << endl;
+            }
+        }
 
         return readOK;
     }

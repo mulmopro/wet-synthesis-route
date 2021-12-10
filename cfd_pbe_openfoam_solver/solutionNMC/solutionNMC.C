@@ -133,6 +133,8 @@ Foam::solutionNMC::solutionNMC
 
     effectiveConc_(readScalar(lookup("effectiveConc"))),
 
+    writeSummaryInterval_(lookupOrDefault("writeSummaryInterval", 1)),
+
     turbSc_
     (
         dimensionedScalar
@@ -888,17 +890,19 @@ void Foam::solutionNMC::transport_species()
 
 void Foam::solutionNMC::correct()
 {
+    bool writeSummary = !(mesh_.time().timeIndex() % writeSummaryInterval_);
+
     // Loop over metals
     forAll(totalMetalConcs_, metali)
     {
         // Reference to the metal concentration
         volScalarField& metal = totalMetalConcs_[metali];
 
-        correctSpecies(metal);
+        correctSpecies(metal, writeSummary);
     }
 
-    correctSpecies(totalNH3_);
-    correctSpecies(inertCharges_);
+    correctSpecies(totalNH3_, writeSummary);
+    correctSpecies(inertCharges_, writeSummary);
 }
 
 
@@ -907,6 +911,9 @@ bool Foam::solutionNMC::read()
     if (regIOobject::read())
     {
         bool readOK = true;
+
+        writeSummaryInterval_ = this->lookupOrDefault(
+            "writeSummaryInterval", 1);
 
         return readOK;
     }

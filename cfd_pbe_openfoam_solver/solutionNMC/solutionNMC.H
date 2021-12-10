@@ -86,6 +86,9 @@ class solutionNMC
         //- Minimum value for effective concentrations
         scalar effectiveConc_;
 
+        //- Interval for writing the summary of concentrations in the log
+        label writeSummaryInterval_;
+
         //- Turbulent Schmidt number
         dimensionedScalar turbSc_;
 

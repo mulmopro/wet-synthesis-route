@@ -103,8 +103,8 @@ const
   return
     tx
   * (
-        Foam::pow(10, KJ_1_) * exp(-1.0 * BJ_1_ / sqrLogS)
-      + Foam::pow(10, KJ_2_) * exp(-1.0 * BJ_2_ / sqrLogS)
+        KJ_1_ * exp(-1.0 * BJ_1_ / sqrLogS)
+      + KJ_2_ * exp(-1.0 * BJ_2_ / sqrLogS)
     )
   * pos(superSat_ - 1.0);
         
@@ -120,8 +120,8 @@ realtype Foam::nucleationRateModels::classicalHeteroHomoNucleation::rate
 
 
         return
-            Foam::pow(10, KJ_1_) * exp(-1.0 * BJ_1_ / sqrLogS)
-          + Foam::pow(10, KJ_2_) * exp(-1.0 * BJ_2_ / sqrLogS);
+            KJ_1_ * exp(-1.0 * BJ_1_ / sqrLogS)
+          + KJ_2_ * exp(-1.0 * BJ_2_ / sqrLogS);
     }
 
     return 0.0;

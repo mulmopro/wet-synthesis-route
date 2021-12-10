@@ -76,6 +76,9 @@ class constantVelocity
         //- Number of coordinates
         const uint8_t numOfCoord_;
 
+        //- Interval for writing the summary of moments in the log
+        label writeSummaryInterval_;
+
         //- Crystal density
         dimensionedScalar crystalRho_;
 

@@ -42,15 +42,18 @@
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#define correctSpecies(Specie)                                                \
+#define correctSpecies(Specie, writeSummary)                                  \
                                                                               \
     Specie.correctBoundaryConditions();                                       \
                                                                               \
-    Info<< Specie.name() << " = "                                             \
-        << Specie.weightedAverage(mesh_.V()).value()                          \
-        << "  Min(" << Specie.name() << ") = " << min(Specie).value()         \
-        << "  Max(" << Specie.name() << ") = " << max(Specie).value()         \
-        << endl;                                                              \
+    if (writeSummary)                                                         \
+    {                                                                         \
+        Info<< Specie.name() << " = "                                         \
+            << Specie.weightedAverage(mesh_.V()).value()                      \
+            << "  Min(" << Specie.name() << ") = " << min(Specie).value()     \
+            << "  Max(" << Specie.name() << ") = " << max(Specie).value()     \
+            << endl;                                                          \
+    }                                                                         \
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

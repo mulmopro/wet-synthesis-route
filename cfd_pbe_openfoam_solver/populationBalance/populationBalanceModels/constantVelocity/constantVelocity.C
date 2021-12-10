@@ -73,6 +73,8 @@ Foam::populationBalances::constantVelocity::constantVelocity
 
     numOfCoord_(readInt(subDict("coordinates").lookup("numOfCoordinates"))),
 
+    writeSummaryInterval_(lookupOrDefault("writeSummaryInterval", 1)),
+
     crystalRho_
     (
         "crystalRho",
@@ -258,17 +260,22 @@ void Foam::populationBalances::constantVelocity::transport_moments()
 
 void Foam::populationBalances::constantVelocity::correct()
 {
+    bool writeSummary = !(mesh_.time().timeIndex() % writeSummaryInterval_);
+
     forAll(moments_, momenti)
     {
         volScalarField& M = moments_[momenti];
 
         M.correctBoundaryConditions();
 
-        Info<< M.name() << " = "
-            << M.weightedAverage(mesh_.V()).value()
-            << "  Min(" << M.name() << ") = " << min(M).value()
-            << "  Max(" << M.name() << ") = " << max(M).value()
-            << endl;
+        if (writeSummary)
+        {
+            Info<< M.name() << " = "
+                << M.weightedAverage(mesh_.V()).value()
+                << "  Min(" << M.name() << ") = " << min(M).value()
+                << "  Max(" << M.name() << ") = " << max(M).value()
+                << endl;
+        }
 
         // M.max(0);
         // M.correctBoundaryConditions();
@@ -281,6 +288,9 @@ bool Foam::populationBalances::constantVelocity::read()
     if (regIOobject::read())
     {
         bool readOK = true;
+
+        writeSummaryInterval_ = this->lookupOrDefault(
+            "writeSummaryInterval", 1);
 
         // this->lookup("alphaMin") >> alphaMin_;
 
