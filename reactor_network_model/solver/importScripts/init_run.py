@@ -150,9 +150,10 @@ def initializer(caseDir):
     ###########################################################################
     # Read the ode solver settings
     solverDict = read_subdict('odeSolver', dict_case)
-    solverMethod = read_key(solverDict, 'method', 'odeSolver')
+    # solverMethod = read_key(solverDict, 'method', 'odeSolver')
     relTol = strToFloat(read_key(solverDict, 'rtol', 'odeSolver'), 'rtol')
-    solverOpts = {"method": solverMethod, "rtol": relTol}
+    # solverOpts = {"method": solverMethod, "rtol": relTol}
+    solverOpts = {"rtol": relTol}
 
     absTols = read_key(solverDict, 'atol', 'odeSolver')
 
@@ -165,12 +166,12 @@ def initializer(caseDir):
     input_ = solverDict.pop('first_step', None)
     if input_:
         initialTimeStep = strToFloat(input_, 'first_step')
-        solverOpts["first_step"] = initialTimeStep
+        solverOpts["h0"] = initialTimeStep
 
     input_ = solverDict.pop('max_step', None)
     if input_:
         maxTimeStep = strToFloat(input_, 'max_step')
-        solverOpts["max_step"] = maxTimeStep
+        solverOpts["hmax"] = maxTimeStep
 
     # Read the Newton-Raphson solver settings
     nRSolverDict = read_subdict('newtonRaphson', dict_case)

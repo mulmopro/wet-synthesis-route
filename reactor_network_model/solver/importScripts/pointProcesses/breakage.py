@@ -35,6 +35,18 @@ class Breakage(ABC):
 
 # --------------------------- Breakage Models ---------------------------- #
 
+class NoBreakage(Breakage):
+
+    paramList = []
+
+    def __init__(self, dict):
+
+        super(NoBreakage, self).__init__()
+
+    def breakageRate(self, superSat, L, epsilon):
+
+        return 0.0
+
 class PowerLaw(Breakage):
 
     paramList = []
