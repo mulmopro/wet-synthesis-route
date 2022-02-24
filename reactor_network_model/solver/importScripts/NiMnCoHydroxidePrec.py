@@ -25,6 +25,7 @@ import ray
 import numpy as np
 import importScripts.exceptions as exceptions
 from scipy.integrate import odeint
+from decimal import Decimal
 from importScripts.momentCalc import adaptiveWheeler
 from importScripts.pointProcesses import growth as gr_module
 from importScripts.pointProcesses import nucleation as nuc_module
@@ -115,6 +116,10 @@ class compartmentModel(object):
         timeTol = deltaT / 1000
 
         writeTime = t0 + writeInterval
+
+        t_digits = max(0, max(
+            -Decimal(str(finalTime)).normalize().as_tuple().exponent,
+            -Decimal(str(writeInterval)).normalize().as_tuple().exponent))
 
         p_new = copy.deepcopy(p0)
         conc_new = copy.deepcopy(conc0)
@@ -213,11 +218,11 @@ class compartmentModel(object):
 
             if t > writeTime or abs(t - writeTime) < deltaT/10 \
                     or abs(t - finalTime) < timeTol:
-                self.saveSolution(t, p_new, conc_new, mom_new)
+                self.saveSolution(t, t_digits, p_new, conc_new, mom_new)
                 writeTime += writeInterval
 
             if solStatus != 0:
-                self.saveSolution(t, p_new, conc_new, mom_new)
+                self.saveSolution(t, t_digits, p_new, conc_new, mom_new)
                 writeTime += writeInterval
                 break
 
@@ -539,10 +544,9 @@ class compartmentModel(object):
         return c_phi
 
     @staticmethod
-    def saveSolution(t, solProbs, solConcs, solMoments):
+    def saveSolution(t, t_digits, solProbs, solConcs, solMoments):
 
-        timeName = str(
-            round(t, -int(min(math.floor(math.log10(abs(t))), 0))))
+        timeName = str(float(round(t, t_digits))).rstrip('0').rstrip('.')
 
         saveDir = "timeResults/" + timeName
         os.makedirs(saveDir, exist_ok=True)
