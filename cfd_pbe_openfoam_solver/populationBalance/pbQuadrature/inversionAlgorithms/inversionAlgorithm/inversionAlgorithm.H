@@ -48,7 +48,7 @@ protected:
         const List<scalar>& dSmall_;
 
         //- Reference to the number of nodes
-        const uint8_t& numOfNodes_;
+        const uint8_t numOfNodes_;
 
         //- Reference to nodes of the NDF
         PtrList<volScalarField>& nodes_;

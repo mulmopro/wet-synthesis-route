@@ -28,13 +28,19 @@ inline const Foam::fvMesh& Foam::solutionNMC::mesh() const
 }
 
 
-inline const Foam::label& Foam::solutionNMC::nMetals() const
+inline const Foam::List<Foam::word>& Foam::solutionNMC::metalNames() const
+{
+    return metalNames_;
+}
+
+
+inline Foam::label Foam::solutionNMC::nMetals() const
 {
     return nMetals_;
 }
 
 
-inline const Foam::scalar& Foam::solutionNMC::effectiveConc() const
+inline Foam::scalar Foam::solutionNMC::effectiveConc() const
 {
     return effectiveConc_;
 }
@@ -60,9 +66,15 @@ inline const Foam::volScalarField& Foam::solutionNMC::totalNH3() const
 }
 
 
-inline const Foam::volScalarField& Foam::solutionNMC::inertCharges() const
+inline const Foam::volScalarField& Foam::solutionNMC::totalNa() const
 {
-    return inertCharges_;
+    return totalNa_;
+}
+
+
+inline const Foam::volScalarField& Foam::solutionNMC::totalSO4() const
+{
+    return totalSO4_;
 }
 
 

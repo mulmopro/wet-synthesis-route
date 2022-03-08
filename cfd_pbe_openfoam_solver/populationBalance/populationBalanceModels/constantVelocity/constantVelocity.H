@@ -217,19 +217,19 @@ public:
             }
 
             //- Return the number of moments
-            const uint8_t& numOfMoments() const
+            uint8_t numOfMoments() const
             {
                 return numOfMoments_;
             }
 
             //- Return the number of nodes
-            const uint8_t& numOfNodes() const
+            uint8_t numOfNodes() const
             {
                 return numOfNodes_;
             }
 
             //- Return the number of coordinates
-            const uint8_t& numOfCoord() const
+            uint8_t numOfCoord() const
             {
                 return numOfCoord_;
             }

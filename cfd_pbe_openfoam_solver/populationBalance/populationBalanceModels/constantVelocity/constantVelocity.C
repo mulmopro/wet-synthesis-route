@@ -239,7 +239,7 @@ void Foam::populationBalances::constantVelocity::transport_moments()
     {
         if (momenti != 3)
         {
-            sourceCorrCoeff_ *= pos(moments_[momenti].internalField());
+            sourceCorrCoeff_ *= pos(moments_[momenti].internalField() - dimensionedScalar("small", moments_[momenti].dimensions(), SMALL));
         }
     }
 

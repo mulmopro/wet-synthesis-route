@@ -60,6 +60,7 @@ int Foam::odeSolver::odeEqs
 
     effectiveConc = aux_data->effectiveConc;
 
+    scalar cationTotalConc(0.0);
     for (i=0; i<nMetals; i++)
     {
         y_data_i = y_data[i];
@@ -73,10 +74,12 @@ int Foam::odeSolver::odeEqs
 
             return (1);
         }
-        else if (!(y_data_i > effectiveConc))
-        {
-            throw lowMetalConcException{};
-        }
+        cationTotalConc += y_data_i;
+    }
+
+    if (!(cationTotalConc > effectiveConc))
+    {
+        throw lowMetalConcException{};
     }
 
     aux_data->solution_.update(y_data, aux_data, cationConcRatios);

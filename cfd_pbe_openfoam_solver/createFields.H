@@ -56,13 +56,14 @@ odeSolver ode(mesh, pb_ref, solution_nmc);
 PtrList<volScalarField>& moments = pb_ref.moments();
 
 PtrList<volScalarField>& totalMetalConcs = solution_nmc.totalMetalConcs();
-const volScalarField& totalNH3 = solution_nmc.totalNH3();
-const volScalarField& inertCharges = solution_nmc.inertCharges();
+// const volScalarField& totalNH3 = solution_nmc.totalNH3();
+// const volScalarField& totalNa = solution_nmc.totalNa();
+// const volScalarField& totalSO4 = solution_nmc.totalSO4();
 
-const PtrList<DimensionedField<scalar, volMesh>>& metalCationConcs =
-    solution_nmc.metalCationConcs();
-const DimensionedField<scalar, volMesh>& NH3 = solution_nmc.NH3();
-const DimensionedField<scalar, volMesh>& OH = solution_nmc.OH();
+// const PtrList<DimensionedField<scalar, volMesh>>& metalCationConcs =
+//     solution_nmc.metalCationConcs();
+// const DimensionedField<scalar, volMesh>& NH3 = solution_nmc.NH3();
+// const DimensionedField<scalar, volMesh>& OH = solution_nmc.OH();
 
 const Field<scalar>& activeCellsField = solution_nmc.activeCellsField();
 

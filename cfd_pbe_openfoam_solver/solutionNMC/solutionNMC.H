@@ -38,6 +38,7 @@ namespace Foam
 {
 
 struct UserData;
+class activityCoeffModel;
 
 /*---------------------------------------------------------------------------*\
                       Class solutionNMC Declaration
@@ -65,14 +66,23 @@ class solutionNMC
         //- Number of metal cations
         label nMetals_;
 
+        //- Number of total concentrations
+        label nTotalConc_;
+
         //- Number of equilibrium unknowns
         label nComps_;
 
         //- index of NH3
         label indexNH3_;
 
-        //- index pf OH
+        //- index of OH
         label indexOH_;
+
+        //- index of Na
+        label indexNa_;
+
+        //- index of SO4
+        label indexSO4_;
 
         //- Maximum number of iterations for Newton-Raphson
         label maxIter_;
@@ -105,14 +115,17 @@ class solutionNMC
         //- superSaturation
         DimensionedField<scalar, volMesh> superSat_;
 
-        //- superSaturation
+        //- pH
         DimensionedField<scalar, volMesh> pH_;
 
         //- Total concentration of NH3
         volScalarField totalNH3_;
 
-        //- Concentration of inert charges
-        volScalarField inertCharges_;
+        //- Total concentration of Na
+        volScalarField totalNa_;
+
+        //- Total concentration of SO4
+        volScalarField totalSO4_;
 
         //- Pointer list of total concentration of metals
         PtrList<volScalarField> totalMetalConcs_;
@@ -125,6 +138,9 @@ class solutionNMC
 
         //- List of molecular diffusivities
         PtrList<dimensionedScalar> D_;
+
+        //- activity coefficient model
+        autoPtr<activityCoeffModel> activityModel_;
 
         //- Dissociation constant of ammonia 
         const scalar Kb_NH3_ = Foam::pow(10, -4.8);
@@ -218,11 +234,14 @@ public:
             //- Return the mesh
             inline const fvMesh& mesh() const;
 
+            //- Return the metal names
+            inline const List<word>& metalNames() const;
+
             //- Return the number of metals
-            inline const label& nMetals() const;
+            inline label nMetals() const;
 
             //- Return the effective concentration
-            inline const scalar& effectiveConc() const;
+            inline scalar effectiveConc() const;
 
             //- Return the total concentration of metals
             inline const PtrList<volScalarField>& totalMetalConcs() const;
@@ -234,7 +253,10 @@ public:
             inline const volScalarField& totalNH3() const;
 
             //- Return the total concentration of inertCharges
-            inline const volScalarField& inertCharges() const;
+            inline const volScalarField& totalNa() const;
+
+            //- Return the total concentration of inertCharges
+            inline const volScalarField& totalSO4() const;
 
             //- Return the equilibrium concentration of metal ions
             inline const PtrList<DimensionedField<scalar, volMesh>>&

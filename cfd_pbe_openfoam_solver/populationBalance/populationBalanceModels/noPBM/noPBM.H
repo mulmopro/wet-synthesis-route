@@ -126,13 +126,13 @@ public:
             const DimensionedField<scalar, volMesh>& sourceCorrCoeff() const;
 
             //- Return the number of moments
-            const uint8_t& numOfMoments() const;
+            uint8_t numOfMoments() const;
 
             //- Return the number of nodes
-            const uint8_t& numOfNodes() const;
+            uint8_t numOfNodes() const;
 
             //- Return the number of coordinates
-            const uint8_t& numOfCoord() const;
+            uint8_t numOfCoord() const;
 
             //- Return the small diameters for the invalid cells
             const List<scalar>& dSmall() const;

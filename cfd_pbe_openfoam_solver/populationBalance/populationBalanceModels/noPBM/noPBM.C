@@ -197,19 +197,19 @@ Foam::populationBalances::noPBM::sourceCorrCoeff() const
 }
 
 
-const uint8_t& Foam::populationBalances::noPBM::numOfMoments() const
+uint8_t Foam::populationBalances::noPBM::numOfMoments() const
 {
     return numOfMoments_;
 }
 
 
-const uint8_t& Foam::populationBalances::noPBM::numOfNodes() const
+uint8_t Foam::populationBalances::noPBM::numOfNodes() const
 {
     return numOfNodes_;
 }
 
 
-const uint8_t& Foam::populationBalances::noPBM::numOfCoord() const
+uint8_t Foam::populationBalances::noPBM::numOfCoord() const
 {
     return numOfCoord_;
 }

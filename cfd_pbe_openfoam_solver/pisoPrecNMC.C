@@ -90,7 +90,8 @@ int main(int argc, char *argv[])
             pb->transport_moments();
             solution_nmc.transport_species();
 
-            // update the pH and equilibrium concentrations after the transport
+            // update the supersaturation, pH and equilibrium concentrations
+            // after the transport
             solution_nmc.update();
 
             // Precipitation is included by using the operator-splitting method

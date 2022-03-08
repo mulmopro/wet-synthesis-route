@@ -20,58 +20,70 @@ This offering is not approved or endorsed by OpenCFD Limited (ESI Group)
 and the OpenFOAM Foundation.
 ---------------------------------------------------------------------------- */
 
-#ifndef UserData_H
-#define UserData_H
+#ifndef idealActivityCoeff_H
+#define idealActivityCoeff_H
 
-#include "sundials_types.h"
-#include "solutionNMC.H"
-#include "populationBalance.H"
+#include "activityCoeffModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
-class growthModel;
-class nucleationRateModel;
-class nucleateSizeModel;
+class solutionNMC;
+
+namespace activityCoeffModels
+{
 
 /*---------------------------------------------------------------------------*\
-                      Struct userData Declaration
+                           Class idealActivityCoeff Declaration
 \*---------------------------------------------------------------------------*/
 
-struct UserData{
-    UserData
-    (
-        label celli,
-        solutionNMC& solution,
-        const populationBalance& pb
-    ): solution_(solution), growth_(pb.growth()), nucRate_(pb.nucleationRate()),
-    nucleateSize_(pb.nucleateSize()), cell_id(celli), nMetals(solution.nMetals()),
-    nMoments(pb.numOfMoments()), totalNH3(solution.totalNH3()[celli]),
-    totalNa(solution.totalNa()[celli]), totalSO4(solution.totalSO4()[celli]),
-    effectiveConc(solution.effectiveConc()), kv(pb.kv_),
-    crystalRho(pb.crystalRho()), crystalMW(pb.crystalMW()), superSat(0.0),
-    concNH3(solution.NH3()[celli]), concOH(solution.OH()[celli])
-    {
-        for(int i=0; i<nMetals; i++)
-        {
-            metalCationConcs[i] = solution.metalCationConcs()[i][celli];
-        }
-    }
-    solutionNMC& solution_;
-    const growthModel& growth_;
-    const nucleationRateModel& nucRate_;
-    const nucleateSizeModel& nucleateSize_;
-    const label cell_id, nMetals, nMoments;
-    const realtype totalNH3, totalNa, totalSO4, effectiveConc, kv, crystalRho,
-        crystalMW;
-    realtype superSat, concNH3, concOH;
-    realtype metalCationConcs[3];
+class idealActivityCoeff
+:
+    public activityCoeffModel
+{
+    // private members
+
+
+public:
+
+    //- Runtime type information
+    TypeName("idealSolution");
+
+
+    // Constructors
+
+        //- Construct from a dictionary and a solution
+        idealActivityCoeff
+        (
+            const dictionary& dict,
+            const solutionNMC& solution
+        );
+
+
+    //- Destructor
+    virtual ~idealActivityCoeff();
+
+
+    // Member Functions
+
+        //- Calculate ionic strength
+        virtual void update_ionic_strength(
+            const List<scalar>&, const List<scalar>&, label);
+
+        //- Calculate activity for a cation-OH pair
+        virtual scalar pair_activity_coeff(
+            label, const List<scalar>&, const List<scalar>&, label);
+
+        //- Get pre-calculated activity coefficient
+        virtual scalar pair_activity_coeff(label, label);
 };
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+} // End namespace activityCoeffModels
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

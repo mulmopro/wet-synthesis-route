@@ -20,103 +20,93 @@ This offering is not approved or endorsed by OpenCFD Limited (ESI Group)
 and the OpenFOAM Foundation.
 ---------------------------------------------------------------------------- */
 
-#ifndef quadratureMethod_H
-#define quadratureMethod_H
+#ifndef activityCoeffModel_H
+#define activityCoeffModel_H
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "populationBalance.H"
+#include "volFields.H"
+#include "dictionary.H"
 #include "runTimeSelectionTables.H"
+
+#include "sundials_types.h"
 
 namespace Foam
 {
 
-class inversionAlgorithm;
+class solutionNMC;
 
 /*---------------------------------------------------------------------------*\
-                           Class quadratureMethod Declaration
+                           Class activityCoeffModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class quadratureMethod
+class activityCoeffModel
 {
 protected:
 
     // Protected data
 
-        //- Reference to the moments
-        const PtrList<volScalarField>& moments_;
+    const fvMesh& mesh_; 
 
-        //- Reference to the number of nodes
-        const uint8_t numOfNodes_;
+    const solutionNMC& solution_;
 
-        //- Nodes of the NDF
-        PtrList<volScalarField> nodes_;
-
-        //- Weights of the NDF
-        PtrList<volScalarField> weights_;
-
-        //- Inversion Algorithm
-        autoPtr<inversionAlgorithm> invAlgm_;
 
 public:
 
     //- Runtime type information
-    TypeName("quadratureMethod");
+    TypeName("activityCoeffModel");
 
 
     // Declare runtime construction
-
-        declareRunTimeSelectionTable
+    declareRunTimeSelectionTable
+    (
+        autoPtr,
+        activityCoeffModel,
+        dictionary,
         (
-            autoPtr,
-            quadratureMethod,
-            populationBalance,
-            (const populationBalance& pb),
-            (pb)
-        );
+            const dictionary& dict,
+            const solutionNMC& solution
+        ),
+        (dict, solution)
+    );
+
 
     // Constructors
 
-        quadratureMethod(const populationBalance& pb);
+        //- Construct from a dictionary and a solution
+        activityCoeffModel
+        (
+            const dictionary& dict,
+            const solutionNMC& solution
+        );
 
 
     //- Destructor
-    virtual ~quadratureMethod();
+    virtual ~activityCoeffModel();
 
 
     // Selectors
 
-        static autoPtr<quadratureMethod> New(const populationBalance& pb);
+        static autoPtr<activityCoeffModel> New
+        (
+            const dictionary& dict,
+            const solutionNMC& solution
+        );
 
 
     // Member Functions
 
-        //- Calculates nodes and weights of the reconstructed NDF
-        virtual void nodesAndWeights(const Field<scalar>&) = 0;
+        //- Calculate ionic strength (if needed by the selected model)
+        virtual void update_ionic_strength(
+            const List<scalar>&, const List<scalar>&, label) = 0;
 
-        //- Returns const access to the nodes
-        const PtrList<volScalarField>& nodes() const
-        {
-            return nodes_;
-        }
+        //- Calculate activity for a cation-OH pair
+        virtual scalar pair_activity_coeff(
+            label, const List<scalar>&, const List<scalar>&, label) = 0;
 
-        //- Returns non-const access to the nodes
-        PtrList<volScalarField>& nodes()
-        {
-            return nodes_;
-        }
+        //- Get pre-calculated activity coefficient
+        virtual scalar pair_activity_coeff(label, label) = 0;
 
-        //- Returns const access to the weights
-        const PtrList<volScalarField>& weights() const
-        {
-            return weights_;
-        }
-
-        //- Returns non-const access to the weights
-        PtrList<volScalarField>& weights()
-        {
-            return weights_;
-        }
 };
 
 

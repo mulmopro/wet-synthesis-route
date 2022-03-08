@@ -171,13 +171,13 @@ public:
             sourceCorrCoeff() const = 0;
 
             //- Return the number of moments
-            virtual const uint8_t& numOfMoments() const = 0;
+            virtual uint8_t numOfMoments() const = 0;
 
             //- Return the number of nodes
-            virtual const uint8_t& numOfNodes() const = 0;
+            virtual uint8_t numOfNodes() const = 0;
 
             //- Return the number of coordinates
-            virtual const uint8_t& numOfCoord() const = 0;
+            virtual uint8_t numOfCoord() const = 0;
 
             //- Return the small diameters for the invalid cells
             virtual const List<scalar>& dSmall() const = 0;

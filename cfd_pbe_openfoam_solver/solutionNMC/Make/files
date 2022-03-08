@@ -1,3 +1,8 @@
 solutionNMC.C
 
+activityCoefficient/activityCoeffModel/activityCoeffModel.C
+activityCoefficient/activityCoeffModel/newActivityCoeffModel.C
+activityCoefficient/bromleyActivityCoeff/bromleyActivityCoeff.C
+activityCoefficient/idealActivityCoeff/idealActivityCoeff.C
+
 LIB = $(FOAM_USER_LIBBIN)/libpisoSolutionNMC
