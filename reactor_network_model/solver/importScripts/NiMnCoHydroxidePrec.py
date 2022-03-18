@@ -21,11 +21,9 @@ along with WetSynthRoute.  If not, see <https://www.gnu.org/licenses/>.
 import math
 import os
 # import time
-import ray
 import numpy as np
 import importScripts.exceptions as exceptions
 from scipy.integrate import odeint
-from decimal import Decimal
 from importScripts.momentCalc import adaptiveWheeler
 from importScripts.pointProcesses import growth as gr_module
 from importScripts.pointProcesses import nucleation as nuc_module
@@ -35,35 +33,31 @@ from importScripts.pointProcesses import aggrEfficiency as aggrEff_module
 from importScripts.pointProcesses import breakage as break_module
 from importScripts.pointProcesses import fragmentDistribution as fragDist_module
 from importScripts.init_run import read_key
-import copy
 
 
 class compartmentModel(object):
 
     def __init__(
-        self, equilibria, mixedSO4Conc, nNodes, cationConcRatios,
-            aMassCrystal, rhoCrystal, pbmDict, nZones, nFluxes, nEnv, nConc,
-            feedsDict, mixing_corr, effConc, epsilon, kTurb, nu, num_cpus):
+            self, equilibria, cationConcRatios, aMassCrystal, rhoCrystal,
+            pbmDict, nNodes, nEnv, nConc, mixing_corr, effConc, epsilon, kTurb,
+            nu, feedsDict):
 
         self.equilibria = equilibria
         self.nNodes = nNodes
         self.nMom = 2*nNodes
         self.nEnv = nEnv
         self.nConc = nConc
+        self.nY = self.nMom + self.nEnv + self.nConc
         self.cationConcRatios = cationConcRatios
         self.nMetals = cationConcRatios.shape[0]
         self.aMassCrystal = aMassCrystal
         self.rhoCrystal = rhoCrystal
         self.nu = nu
-        self.numOfCores = num_cpus
         self.zeroSize = np.finfo(float).eps
         self.kv = math.pi / 6
         self.equilConc = np.zeros(5)
         self.mixing_corr = mixing_corr
         self.feedsDict = feedsDict
-        self.mixedSO4Conc = mixedSO4Conc
-        self.nZones = nZones
-        self.nFluxes = nFluxes
         self.effConc = effConc
         self.epsilon = epsilon
         self.kTurb = kTurb
@@ -82,271 +76,36 @@ class compartmentModel(object):
         self.daughterFunction = None
         self.createModels(pbmDict)
 
-    def solveODE(
-        self, p0, conc0, mom0, t0, finalTime, deltaT, writeInterval,
-            solverOpts, volumes, fluxes, flux_IDs, inletFlowrates,
-            inletOrigins, inletDestinations, outletFlowrates, outletOrigins):
-
-        feedsDict = self.feedsDict
-        nZones = self.nZones
-
-        numOfCores = self.numOfCores
-
-        self_ref = ray.put(self)
-
-        chunks = list()
-        for i in range(numOfCores):
-            chunks.append(list())
-
-        for ID in range(self.nZones):
-            quotient = ID // numOfCores
-            remainder = ID % numOfCores
-
-            if (quotient % 2) == 0:
-                chunks[remainder].append(ID)
-            else:
-                # Fill reverse
-                chunks[numOfCores - remainder - 1].append(ID)
-
-        # print(chunks)
-
-        solStatus = 0
-
-        t = t0
-        timeTol = deltaT / 1000
-
-        writeTime = t0 + writeInterval
-
-        t_digits = max(0, max(
-            -Decimal(str(finalTime)).normalize().as_tuple().exponent,
-            -Decimal(str(writeInterval)).normalize().as_tuple().exponent))
-
-        p_new = copy.deepcopy(p0)
-        conc_new = copy.deepcopy(conc0)
-        mom_new = copy.deepcopy(mom0)
-
-        coeffMatrix = np.zeros([nZones, nZones])
-
-        ''' Transport is done in two steps, each over half of the time-step
-            (Strang operator-splitting) '''
-        volByDeltaT = volumes / (deltaT / 2.0)
-
-        # fluxes between compartments
-        for i in range(self.nFluxes):
-            flowrate = fluxes[i]
-            From = flux_IDs[i, 0]
-            To = flux_IDs[i, 1]
-            coeffMatrix[From, From] += flowrate
-            coeffMatrix[To, From] -= flowrate
-
-        # outlet fluxes
-        for i in range(np.size(outletFlowrates, axis=0)):
-            outletFlowRate = outletFlowrates[i]
-            From = outletOrigins[i]
-            coeffMatrix[From, From] += outletFlowRate
-
-        for ID in range(nZones):
-            coeffMatrix[ID, ID] += volByDeltaT[ID]
-
-        iter_no = 0
-        while t < finalTime - timeTol:
-            t += deltaT
-            # print('t = ', t)
-
-            ''' First transport over half of the time-step '''
-            self.transport(
-                p_new, conc_new, mom_new, volByDeltaT, coeffMatrix,
-                inletDestinations, inletOrigins, inletFlowrates, feedsDict)
-
-            ''' Balance the integration load on the processors periodically
-                based on the supersaturation '''
-            if (iter_no % 100) == 0:
-                print('t = ', t)
-                zone_supersat = self.update_supersaturation(p_new, conc_new)
-
-                sorted_index = np.flip(np.argsort(zone_supersat))
-
-                for ID in range(self.nZones):
-                    quotient = ID // numOfCores
-                    remainder = ID % numOfCores
-
-                    if (quotient % 2) == 0:
-                        chunks[remainder][quotient] = sorted_index[ID]
-                    else:
-                        # Fill reverse
-                        chunks[numOfCores - remainder - 1][quotient] = \
-                            sorted_index[ID]
-                # print(chunks)
-
-            ''' Integrate source terms over the time-step '''
-            processes = []
-            for worker in range(numOfCores):
-                processes.append(
-                    self.integrateSource.remote(
-                        self_ref, chunks[worker], p_new, conc_new, mom_new,
-                        deltaT, solverOpts, t))
-
-            results = ray.get(processes)
-
-            for worker, result in enumerate(results):
-                y_worker = result[0]
-                status_worker = result[1]
-                for i, ID in enumerate(chunks[worker]):
-                    sol_y = y_worker[i]
-                    p_new[ID, :] = sol_y[:3]
-                    conc_new[ID, :] = sol_y[3:9]
-                    mom_new[ID, :] = sol_y[9:]
-
-                    sol_status = status_worker[i]
-                    if sol_status != 0:
-                        solStatus = sol_status
-
-            # time.sleep(0.1)
-
-            ''' Second transport over half of the time-step '''
-            self.transport(
-                p_new, conc_new, mom_new, volByDeltaT, coeffMatrix,
-                inletDestinations, inletOrigins, inletFlowrates, feedsDict)
-
-            # averageSO4Conc = np.sum(
-            #     volumes*(conc_new[:, 5]
-            #     + p_new[:, 0]*self.feedsDict['metals']['concentration'][5])
-            #     ) / np.sum(volumes)
-
-            # if (1.0 - averageSO4Conc/self.mixedSO4Conc) < 1e-3:
-            #     solStatus = 2
-
-            if t > writeTime or abs(t - writeTime) < deltaT/10 \
-                    or abs(t - finalTime) < timeTol:
-                self.saveSolution(t, t_digits, p_new, conc_new, mom_new)
-                writeTime += writeInterval
-
-            if solStatus != 0:
-                self.saveSolution(t, t_digits, p_new, conc_new, mom_new)
-                writeTime += writeInterval
-                break
-
-            iter_no += 1
-
-        return t, p_new, conc_new, mom_new, solStatus
-
-    def transport(
-        self, p_new, conc_new, mom_new, volByDeltaT, coeffMatrix,
-            inletDestinations, inletOrigins, inletFlowrates, feedsDict):
-
-        for k in range(self.nEnv):
-
-            constantVector = p_new[:, k]*volByDeltaT
-
-            for To, inletOrigin, inletFlowrate in zip(
-                    inletDestinations, inletOrigins, inletFlowrates):
-                inlet_values = np.array(
-                    feedsDict[inletOrigin]['probabilities'])
-                constantVector[To] += inletFlowrate*inlet_values[k]
-
-            p_new[:, k] = np.linalg.solve(coeffMatrix, constantVector)
-
-        # p_new[p_new < 0.0] = 0.0
-        # p_new[p_new > 1.0] = 1.0
-
-        for k in range(self.nConc):
-
-            constantArray = conc_new[:, k]*volByDeltaT
-
-            for To, inletOrigin, inletFlowrate in zip(
-                    inletDestinations, inletOrigins, inletFlowrates):
-                inlet_values = np.array(
-                    feedsDict[inletOrigin]['concentration'])
-                constantArray[To] += inletFlowrate*inlet_values[k]
-
-            conc_new[:, k] = np.linalg.solve(coeffMatrix, constantArray)
-
-        for k in range(self.nMom):
-
-            constantArray = mom_new[:, k]*volByDeltaT
-
-            mom_new[:, k] = np.linalg.solve(coeffMatrix, constantArray)
-
-    def update_supersaturation(self, p, conc):
-
-        nZones = self.nZones
-        effConc = self.effConc
-        nMetals = self.nMetals
-        cationConcRatios = self.cationConcRatios
-        equilibria = self.equilibria
-        k_sp = equilibria.k_sp
-
-        p4 = 1 - np.sum(p, axis=1)
-
-        superSat = np.zeros(nZones)
-
-        for ID in range(nZones):
-            reactEnv_p = p4[ID]
-            reactEnv_p = 1
-
-            weightedConcs = conc[ID, :]
-
-            if reactEnv_p > 0.0:
-                concs = weightedConcs / reactEnv_p
-                if np.all(concs[0:3] > effConc):
-                    if concs[3] > effConc:
-                        guess = np.zeros(5)
-                        for i in range(nMetals):
-                            guess[i] = concs[i]
-
-                        guess[3] = concs[3]
-
-                        if concs[4] > 0.001:
-                            guess[4] = concs[4]
-                        else:
-                            guess[4] = 0.001
-
-                        superSat[ID], _, _ = equilibria.solve(concs, guess)
-                    else:
-                        conc_OH = concs[4]
-                        k_sp_NMC = 1
-                        powConcs_NMC = 1
-                        for i, (k_sp_i, cationConcRatio) in \
-                                enumerate(zip(k_sp, cationConcRatios)):
-                            k_sp_NMC *= (k_sp_i)**cationConcRatio
-                            powConcs_NMC *= concs[i]**cationConcRatio
-                        superSat[ID] = \
-                            (powConcs_NMC*(conc_OH**2)/k_sp_NMC)**(1.0/3.0)
-                else:
-                    superSat[ID] = 0.0
-            else:
-                superSat[ID] = 0.0
-
-        return superSat
-
-    @staticmethod
-    @ray.remote(num_cpus=1, num_returns=1)
     def integrateSource(
-            self_ref, chunk_IDs, p, conc, mom, deltaT, solverOpts, t):
+            self, zoneIDs, y, deltaT, solverOpts, t=None):
 
-        y_chunks = []
-        status_chunks = []
+        nY = self.nY
 
-        for ID in chunk_IDs:
-            y0 = np.concatenate((
-                    p[ID, :], conc[ID, :], mom[ID, :]))
+        status = 0
 
-            self_ref.equilConc = np.zeros(5)
+        y0 = np.empty(nY)
 
-            y = odeint(
-                self_ref.source, y0, [0, deltaT], args=(ID, self_ref, ),
+        for i, ID in enumerate(zoneIDs):
+            begin_i = i*nY
+
+            y0 = y[begin_i : begin_i + nY]
+
+            self.equilConc = np.zeros(5)
+
+            y[begin_i : begin_i + nY] = odeint(
+                self.source, y0, [0, deltaT], args=(ID, ),
                 # rtol=None, atol=None, h0=1e-7, hmax=0.0, hmin=0.0,
                 **solverOpts,
                 tcrit=None, ixpr=0, mxstep=0, mxhnil=0, mxordn=12, mxords=5,
-                full_output=False, printmessg=False, tfirst=False)
+                full_output=False, printmessg=False, tfirst=False)[-1, :]
 
-            y_chunks.append(y[-1, :])
-            status_chunks.append(0)
+            # Currently not used, because odeint does not return status
+            # in contrast to solve_ivp
+            # status = max(status, 0)
 
-        return y_chunks, status_chunks
+        return status
 
-    @staticmethod
-    def source(y, t, ID, self):
+    def source(self, y, t, ID):
         # print(t)
 
         equilibria = self.equilibria
@@ -529,6 +288,66 @@ class compartmentModel(object):
 
         return dtdy
 
+    def update_supersaturation(self, y, nZones):
+
+        nY = self.nY
+        nEnv = self.nEnv
+        nConc = self.nConc
+
+        y_reshaped = y.reshape((nZones, nY))
+
+        p = y_reshaped[:, :nEnv]
+        conc = y_reshaped[:, nEnv : nEnv + nConc]
+
+        effConc = self.effConc
+        nMetals = self.nMetals
+        cationConcRatios = self.cationConcRatios
+        equilibria = self.equilibria
+        k_sp = equilibria.k_sp
+
+        p4 = 1 - np.sum(p, axis=1)
+
+        superSat = np.zeros(nZones)
+
+        for ID in range(nZones):
+            reactEnv_p = p4[ID]
+            reactEnv_p = 1
+
+            weightedConcs = conc[ID, :]
+
+            if reactEnv_p > 0.0:
+                concs = weightedConcs / reactEnv_p
+                if np.all(concs[0:3] > effConc):
+                    if concs[3] > effConc:
+                        guess = np.zeros(5)
+                        for i in range(nMetals):
+                            guess[i] = concs[i]
+
+                        guess[3] = concs[3]
+
+                        if concs[4] > 0.001:
+                            guess[4] = concs[4]
+                        else:
+                            guess[4] = 0.001
+
+                        superSat[ID], _, _ = equilibria.solve(concs, guess)
+                    else:
+                        conc_OH = concs[4]
+                        k_sp_NMC = 1
+                        powConcs_NMC = 1
+                        for i, (k_sp_i, cationConcRatio) in \
+                                enumerate(zip(k_sp, cationConcRatios)):
+                            k_sp_NMC *= (k_sp_i)**cationConcRatio
+                            powConcs_NMC *= concs[i]**cationConcRatio
+                        superSat[ID] = \
+                            (powConcs_NMC*(conc_OH**2)/k_sp_NMC)**(1.0/3.0)
+                else:
+                    superSat[ID] = 0.0
+            else:
+                superSat[ID] = 0.0
+
+        return superSat
+
     @staticmethod
     def cPhi(reynolds_l):
 
@@ -543,17 +362,6 @@ class compartmentModel(object):
 
         return c_phi
 
-    @staticmethod
-    def saveSolution(t, t_digits, solProbs, solConcs, solMoments):
-
-        timeName = str(float(round(t, t_digits))).rstrip('0').rstrip('.')
-
-        saveDir = "timeResults/" + timeName
-        os.makedirs(saveDir, exist_ok=True)
-
-        np.save(saveDir + '/p', solProbs)
-        np.save(saveDir + '/totalConc', solConcs)
-        np.save(saveDir + '/moments', solMoments)
 
     def createModels(self, pbmDict):
 

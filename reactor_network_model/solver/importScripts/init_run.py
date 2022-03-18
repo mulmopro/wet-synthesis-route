@@ -180,10 +180,6 @@ def initializer(caseDir):
     tol = strToFloat(read_key(nRSolverDict, 'tol', 'newtonRaphson'), 'tol')
     nRSolverOpts = {"maxIter": maxIter, "tol": tol}
 
-    ###########################################################################
-    # Read number of cpus
-    input_ = read_input('numCPUs', dict_case)
-    num_cpus = strToInt(input_, 'numCPUs')
 
     ###########################################################################
     # Read number of nodes
@@ -244,7 +240,7 @@ def initializer(caseDir):
     return equilibria, startTime, finalTimes, timeSteps, \
         nNodes, feedsDict, outletFlowrates, mixedConc, cationConcRatios, \
         compNames, atomicMass, aMassCrystal, rhoCrystal, solverOpts, \
-        pbmDict, num_cpus, volumes, flux_IDs, fluxes, inletDestinations, \
+        pbmDict, volumes, flux_IDs, fluxes, inletDestinations, \
         inletOrigins, inletFlowrates, outletOrigins, epsilon, kTurb, \
         nZones, nFluxes, mixing_corr, effConc, nu
 
