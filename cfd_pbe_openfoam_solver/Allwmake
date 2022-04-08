@@ -9,8 +9,8 @@ make
 mv liblapack.so $FOAM_USER_LIBBIN
 cd ..
 
-export SUNDIAL_SRC=/usr/local/include
-export SUNDIAL_LIB=/usr/local/lib
+export SUNDIAL_SRC=/sundials/instdir/include
+export SUNDIAL_LIB=/sundials/instdir/lib
 
 wmakeLnInclude solutionNMC
 wmakeLnInclude populationBalance
