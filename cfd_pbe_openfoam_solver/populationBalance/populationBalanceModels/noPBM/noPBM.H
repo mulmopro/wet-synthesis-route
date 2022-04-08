@@ -43,6 +43,9 @@ class noPBM
 {
     // Private data
 
+        //- Minimum value for alpha used to check moment no. 3
+        dimensionedScalar alphaMin_;
+
         //- Small diameters for the invalid cells
         List<scalar> dSmall_;
 
@@ -102,6 +105,15 @@ public:
             //- Return the nucleate size model
             const nucleateSizeModel& nucleateSize() const;
 
+            //- Return the list of aggregation models
+            const aggregationList& aggregation() const;
+
+            //- Return the list of breakage models
+            const breakageList& breakage() const;
+
+            //- Return the quadrature model
+            const quadratureMethod& quadrature() const;
+
             //- Return the phi field
             const surfaceScalarField& phi() const;
 
@@ -133,6 +145,9 @@ public:
 
             //- Return the number of coordinates
             uint8_t numOfCoord() const;
+
+            //- Return Minimum value for alpha used to check moment no. 3
+            const dimensionedScalar& alphaMin() const;
 
             //- Return the small diameters for the invalid cells
             const List<scalar>& dSmall() const;

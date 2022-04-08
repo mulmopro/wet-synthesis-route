@@ -63,6 +63,13 @@ symmetric::distribution
         pow(2, 1.0 - k/3.0)*pow(Li, k);
 }
 
+
+scalar symmetric::distribution(scalar Li, int k) const
+{
+    return
+        pow(2, 1.0 - k/3.0)*pow(Li, k);
+}
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace daughterDistributions

@@ -72,6 +72,9 @@ public:
         //- Calculates nodes and weights of the reconstructed NDF
         virtual void inversion(const Field<scalar>&);
 
+        //- Calculates nodes and weights for a single cell
+        virtual List<List<scalar>> inversion(const List<scalar>&) const;
+
         //- Calculates nodes and weights of the reconstructed NDF on the
         //- fixed value boundaries
         virtual void inversionBoundary();

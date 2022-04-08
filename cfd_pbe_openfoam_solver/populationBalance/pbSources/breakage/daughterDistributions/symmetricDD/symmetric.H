@@ -66,6 +66,8 @@ public:
             const DimensionedField<scalar, volMesh>&,
             int
         ) const;
+
+        virtual scalar distribution(scalar, int) const;
 };
 
 

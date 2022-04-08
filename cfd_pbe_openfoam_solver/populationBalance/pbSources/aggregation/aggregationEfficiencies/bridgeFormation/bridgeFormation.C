@@ -44,7 +44,9 @@ bridgeFormation::bridgeFormation
     turbulence_(pb.turbulence()),
     growth_(pb.growth()),
     A_("A", dimForce/dimArea, dict),
-    rhoLiq_("rhoLiq", dimDensity, dict)
+    A_v_(A_.value()),
+    rhoLiq_("rhoLiq", dimDensity, dict),
+    rhoLiq_v_(rhoLiq_.value())
 {}
 
 
@@ -104,6 +106,51 @@ bridgeFormation::efficiency
           * sqrt(epsilon / nu) * Db / f_lambda
           / max(growthRate, dimensionedScalar("small", dimVelocity, SMALL))
         );
+}
+
+
+scalar bridgeFormation::efficiency
+(
+    scalar Li, scalar Lj, const PhysChemData& data
+) const
+{
+    const scalar growthRate = data.growthRate;
+
+    if (growthRate > SMALL)
+    {
+        const scalar epsilon = data.epsilon;
+
+        const scalar nu = data.nu;
+
+        scalar Li_pos = max(Li, SMALL);
+        scalar Lj_pos = max(Lj, SMALL);
+
+        scalar L_eq = Li*Lj / sqrt(pow(Li_pos - Lj_pos, 2) + Li_pos*Lj_pos);
+
+        scalar Db =
+            sqrt(rhoLiq_v_ / A_v_) * pow(epsilon*nu, 0.25) * L_eq;
+
+        scalar r_L = max(Li_pos, Lj_pos) / min(Li_pos, Lj_pos);
+
+        scalar sqrt_r_L = sqrt(r_L*r_L - 1.0);
+
+        scalar f_lambda =
+            4 * (1 + r_L - sqrt_r_L)
+          / (
+                (1.0/3.0 + r_L - sqrt_r_L)
+              - pow(r_L - sqrt_r_L, 2) * (2*r_L / 3.0 + sqrt_r_L / 3.0)
+            );
+
+        return
+            exp
+            (
+                -1.0
+              * sqrt(epsilon / nu) * Db / f_lambda
+              / max(growthRate, SMALL)
+            );
+    }
+
+    return 0.0;
 }
 
 

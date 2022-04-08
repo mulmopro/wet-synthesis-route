@@ -33,6 +33,8 @@ and the OpenFOAM Foundation.
 namespace Foam
 {
 
+struct PhysChemData;
+
 /*---------------------------------------------------------------------------*\
                          Class aggregation Declaration
 \*---------------------------------------------------------------------------*/
@@ -40,7 +42,7 @@ namespace Foam
 class aggregation
 {
 protected:
-    
+
     // Protected data
 
         //- Reference to the population balance
@@ -95,6 +97,15 @@ public:
             const PtrList<volScalarField>&,
             const PtrList<volScalarField>&,
             int
+        ) const = 0;
+
+        //- Return aggregation source for moment k
+        virtual scalar source
+        (
+            const List<scalar>&,
+            const List<scalar>&,
+            int,
+            const PhysChemData&
         ) const = 0;
 
 };

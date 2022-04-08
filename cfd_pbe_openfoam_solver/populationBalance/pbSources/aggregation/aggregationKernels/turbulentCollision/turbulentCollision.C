@@ -22,6 +22,7 @@ and the OpenFOAM Foundation.
 
 #include "turbulentCollision.H"
 #include "kinematicMomentumTransportModel.H"
+#include "UserData.H"
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -40,7 +41,8 @@ turbulentCollision::turbulentCollision
 )
 :
     aggregationKernel(turbulence),
-    CT_("CT", dimless, dict)
+    CT_("CT", dimless, dict),
+    CT_v_(CT_.value())
 {}
 
 
@@ -71,6 +73,23 @@ turbulentCollision::frequency
         (
             epsilon
           / turbulence_.nu()().internalField()
+        )
+      * pow(Li + Lj, 3);
+}
+
+scalar turbulentCollision::frequency
+(
+    scalar Li, scalar Lj, const PhysChemData& data
+) const
+{
+
+    return
+        CT_v_
+      * 2.2943
+      * sqrt
+        (
+            data.epsilon
+          / data.nu
         )
       * pow(Li + Lj, 3);
 }

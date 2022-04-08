@@ -80,6 +80,15 @@ public:
             int
         ) const;
 
+        //- Calculate the aggregation models
+        scalar source
+        (
+            const List<scalar>&,
+            const List<scalar>&,
+            int,
+            const PhysChemData&
+        ) const;
+
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

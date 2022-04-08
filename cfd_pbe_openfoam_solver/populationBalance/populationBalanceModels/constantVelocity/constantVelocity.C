@@ -231,30 +231,59 @@ Foam::populationBalances::constantVelocity::~constantVelocity()
 
 void Foam::populationBalances::constantVelocity::transport_moments()
 {
+    tmp<fv::convectionScheme<scalar>> mvConv
+    (
+        fv::convectionScheme<scalar>::New
+        (
+            mesh_, mFields_, phi_, mesh_.divScheme("div(phi,M)")
+        )
+    );
 
-    // const DimensionedField<scalar, volMesh>& M3 = moments_[3].internalField();
+    volScalarField Dturb = turbulence_.nut();
 
-    sourceCorrCoeff_ = pos(moments_[3].internalField()*kv_ - alphaMin_);
+    Field<scalar> posMoms(mesh_.nCells(), 1.0);
+
+    // Loop over moments to define their corresponding moment equations
     forAll(moments_, momenti)
     {
-        if (momenti != 3)
-        {
-            sourceCorrCoeff_ *= pos(moments_[momenti].internalField() - dimensionedScalar("small", moments_[momenti].dimensions(), SMALL));
-        }
+        // Reference to the moment for which transport eq. is going to be defined
+        volScalarField& M = moments_[momenti];
+
+        tmp<fvScalarMatrix> tMiEqn
+        (
+            fvm::ddt(M)
+        //  + fvm::div(phi_, M)
+          + mvConv->fvmDiv(phi_, M)
+          - fvm::laplacian(Dturb, M)
+        );
+
+        fvScalarMatrix& MiEqn = tMiEqn.ref();
+
+        // Relaxing the moment equation
+        MiEqn.relax();
+        
+        // Solve the equation of the current moment
+        MiEqn.solve(M.name());
+
+        // M.correctBoundaryConditions();
+
+        // Info<< M.name() << " = "
+        //     << M.weightedAverage(mesh_.V()).value()
+        //     << "  Min(" << M.name() << ") = " << min(M).value()
+        //     << "  Max(" << M.name() << ") = " << max(M).value()
+        //     << endl;
+
+        posMoms *= pos(M.field());
+
+        max(M.boundaryFieldRef(), M.boundaryField(), 0.0);
+        // M.correctBoundaryConditions();
     }
 
-    Info<< "Calculating nodes and weights in "
-        << gSum(sourceCorrCoeff_)
-        << " number of cells"<< endl;
-
-    // Finding nodes and weights for tagged cells
-    quadrature_->nodesAndWeights(sourceCorrCoeff_.field());
-    
-    const PtrList<volScalarField>& nodes = quadrature_->nodes();
-    const PtrList<volScalarField>& weights = quadrature_->weights();
-
-    // Moment transport equations without growth and nucleation
-    #include "momentTransportEq.H"
+    forAll(moments_, momenti)
+    {
+        Field<scalar>& M_field = moments_[momenti].field();
+        M_field *= posMoms;
+    }
 }
 
 
@@ -266,7 +295,7 @@ void Foam::populationBalances::constantVelocity::correct()
     {
         volScalarField& M = moments_[momenti];
 
-        M.correctBoundaryConditions();
+        // M.correctBoundaryConditions();
 
         if (writeSummary)
         {
@@ -277,8 +306,8 @@ void Foam::populationBalances::constantVelocity::correct()
                 << endl;
         }
 
-        // M.max(0);
-        // M.correctBoundaryConditions();
+        M.max(0);
+        M.correctBoundaryConditions();
     }
 }
 

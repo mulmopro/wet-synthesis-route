@@ -25,12 +25,13 @@ forAll(activeCellsField, celli)
 
         if (cationTotalConc > effectiveConc)
         {
-            // Info<<"cell id: "<<celli<<endl;
+            // cout<<"cell id: "<<celli<<'\n';
             UserData *aux_data = new UserData
             (
                 celli,
                 solution_nmc,
-                pb_ref
+                pb_ref,
+                turb_ref
             );
 
             for(i=0; i<nMoments; i++)

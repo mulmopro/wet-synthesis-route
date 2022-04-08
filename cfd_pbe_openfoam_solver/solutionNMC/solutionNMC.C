@@ -418,167 +418,208 @@ void Foam::solutionNMC::update(const realtype *y, UserData *aux_data,
         cationTotalConc += totalConc;
     }
 
-    // if (cationTotalConc > effectiveConc_)
-    // {
-        scalar totalConc_NH3(aux_data->totalNH3);
-        scalar totalConc_Na(aux_data->totalNa);
-        scalar totalConc_SO4(aux_data->totalSO4);
+    scalar totalConc_NH3(aux_data->totalNH3);
+    scalar totalConc_Na(aux_data->totalNa);
+    scalar totalConc_SO4(aux_data->totalSO4);
 
-        if (totalConc_NH3 > effectiveConc_)
+    if (totalConc_NH3 > effectiveConc_)
+    {
+        for (i=0; i<nMetals_; i++)
         {
-            for (i=0; i<nMetals_; i++)
+            equilConc = aux_data->metalCationConcs[i];
+            totalConc = totalConcs[i];
+            if (equilConc > 0.0 && equilConc < totalConc)
             {
-                equilConc = aux_data->metalCationConcs[i];
-                totalConc = totalConcs[i];
-                if (equilConc > 0.0 && equilConc < totalConc)
+                pConcs[i] = -1.0*Foam::log10(equilConc);
+            }
+            else
+            {
+                pConcs[i] = -1.0*Foam::log10(totalConc);
+            }
+        }
+
+        equilConc = aux_data->concNH3;
+        if (equilConc > effectiveConc_ && equilConc < totalConc_NH3)
+        {
+            pConcs[indexNH3_] = -1.0*Foam::log10(equilConc);
+        }
+        else
+        {
+            pConcs[indexNH3_] = -1.0*Foam::log10(totalConc_NH3);
+        }
+
+        equilConc = aux_data->concOH;
+        if (equilConc > 1e-7)
+        {
+            pConcs[indexOH_] = -1.0*Foam::log10(equilConc);
+        }
+        else if (totalConc_Na > 0.001)
+        {
+            pConcs[indexOH_] = -1.0*Foam::log10(totalConc_Na);
+        }
+        else
+        {
+            pConcs[indexOH_] = -1.0*Foam::log10(0.001);
+        }
+
+        for (i=0; i<nComps_; i++)
+        {
+            negf[i] = 0.0;
+        }
+
+        for (i=0; i<nJ; i++)
+        {
+            J[i] = 0.0;
+        }
+
+        totalConcs[indexNH3_] = totalConc_NH3;
+        totalConcs[indexNa_] = totalConc_Na;
+        totalConcs[indexSO4_] = totalConc_SO4;
+
+        for(i=0; i<maxIter_; i++)
+        {
+
+            equilibriaEqs(pConcs, totalConcs, cationTotalConc, negf, J);
+
+            dgesv_(&n, &nrhs, J, &lda, ipiv, negf, &ldb, &info);
+
+            if (info == 0)
+            {
+                error = 0.0;
+                for (j=0; j<nComps_; j++)
                 {
-                    pConcs[i] = -1.0*Foam::log10(equilConc);
+                    error += mag(negf[j]);
+                }
+
+                if (error < tol_)
+                {
+                    break;
                 }
                 else
                 {
-                    pConcs[i] = -1.0*Foam::log10(totalConc);
-                }
-            }
-
-            equilConc = aux_data->concNH3;
-            if (equilConc > effectiveConc_ && equilConc < totalConc_NH3)
-            {
-                pConcs[indexNH3_] = -1.0*Foam::log10(equilConc);
-            }
-            else
-            {
-                pConcs[indexNH3_] = -1.0*Foam::log10(totalConc_NH3);
-            }
-
-            equilConc = aux_data->concOH;
-            if (equilConc > 1e-7)
-            {
-                pConcs[indexOH_] = -1.0*Foam::log10(equilConc);
-            }
-            else if (totalConc_Na > 0.001)
-            {
-                pConcs[indexOH_] = -1.0*Foam::log10(totalConc_Na);
-            }
-            else
-            {
-                pConcs[indexOH_] = -1.0*Foam::log10(0.001);
-            }
-
-            for (i=0; i<nComps_; i++)
-            {
-                negf[i] = 0.0;
-            }
-
-            for (i=0; i<nJ; i++)
-            {
-                J[i] = 0.0;
-            }
-
-            totalConcs[indexNH3_] = totalConc_NH3;
-            totalConcs[indexNa_] = totalConc_Na;
-            totalConcs[indexSO4_] = totalConc_SO4;
-
-            for(i=0; i<maxIter_; i++)
-            {
-                // if (aux_data->cell_id == )
-                // {
-                //     Info<<pConcs<<endl<<totalConcs<<endl<<cationTotalConc
-                //         <<endl;
-                // }
-
-                equilibriaEqs(pConcs, totalConcs, cationTotalConc, negf, J);
-
-                dgesv_(&n, &nrhs, J, &lda, ipiv, negf, &ldb, &info);
-
-                if (info == 0)
-                {
-                    error = 0.0;
                     for (j=0; j<nComps_; j++)
                     {
-                        error += mag(negf[j]);
+                        pConcs[j] += negf[j];
                     }
+                }
 
-                    if (error < tol_)
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        for (j=0; j<nComps_; j++)
-                        {
-                            pConcs[j] += negf[j];
-                        }
-                    }
-
-                }
-                else if (info > 0) /* Check for the exact singularity */
-                {
-                    Info<< "The diagonal element of the triangular"
-                        << "factor of A," << endl
-                        << "U(" << info << "," << info << ") is zero, "
-                        << "so that A is singular;" << endl
-                        << "the solution could not be computed."
-                        << endl << endl
-                        << exit(FatalError);
-                }
-                else
-                {
-                    Info<< "Equilibrium calculation failed for cell "
-                        << aux_data->cell_id << "with the total concentrations:"
-                        << endl << totalConcs << endl << endl
-                        << exit(FatalError);
-                }
             }
+            else if (info > 0) /* Check for the exact singularity */
+            {
+                Info<< "The diagonal element of the triangular"
+                    << "factor of A," << endl
+                    << "U(" << info << "," << info << ") is zero, "
+                    << "so that A is singular;" << endl
+                    << "the solution could not be computed."
+                    << endl << endl
+                    << exit(FatalError);
+            }
+            else
+            {
+                Info<< "Equilibrium calculation failed for cell "
+                    << aux_data->cell_id << "with the total concentrations:"
+                    << endl << totalConcs << endl << endl
+                    << exit(FatalError);
+            }
+        }
 
-            conc_NH3 = Foam::pow(10, -1.0*pConcs[indexNH3_]);
-            conc_OH = Foam::pow(10, -1.0*pConcs[indexOH_]);
+        conc_NH3 = Foam::pow(10, -1.0*pConcs[indexNH3_]);
+        conc_OH = Foam::pow(10, -1.0*pConcs[indexOH_]);
 
-            // conc_NH4 = Kb_NH3_*conc_NH3 / conc_OH;
-            // conc_H = kw_ / conc_OH;
+        conc_NH4 = Kb_NH3_*conc_NH3 / conc_OH;
+        conc_H = kw_ / conc_OH;
 
-            // List<scalar> cationMolalConc(nTotalConc_);
-            // for (j=0; j<nMetals_; j++)
-            // {
-            //     cationMolalConc[j] = totalConcs[j];
-            // }
-            // cationMolalConc[nMetals_] = totalConc_Na;
-            // cationMolalConc[nMetals_ + 1] = conc_NH4;
-            // cationMolalConc[nMetals_ + 2] = conc_H;
+        List<scalar> cationMolalConc(nTotalConc_);
+        for (j=0; j<nMetals_; j++)
+        {
+            cationMolalConc[j] = totalConcs[j];
+        }
+        cationMolalConc[nMetals_] = totalConc_Na;
+        cationMolalConc[nMetals_ + 1] = conc_NH4;
+        cationMolalConc[nMetals_ + 2] = conc_H;
 
-            // List<scalar> anionMolalConc({totalConc_SO4, conc_OH});
+        List<scalar> anionMolalConc({totalConc_SO4, conc_OH});
 
-            // activityModel_->update_ionic_strength(
-            //     cationMolalConc, anionMolalConc, aux_data->cell_id);
+        scalar I_s = activityModel_->ionic_strength(
+            cationMolalConc, anionMolalConc);
+
+        k_sp_NMC = 1.0;
+        powConcs_NMC = 1.0;
+        for (j=0; j<nMetals_; j++)
+        {
+            equilConc = Foam::pow(10, -1.0*pConcs[j]);
+            // aux_data->metalCationConcs[j] = equilConc;
+
+            cationConcRatio = totalConcs[j] / cationTotalConc;
+            cationConcRatios[j] = cationConcRatio;
+
+            k_sp_NMC *= Foam::pow(k_sp_[j], cationConcRatio);
+
+            scalar gamma_ca = activityModel_->pair_activity_coeff(
+                j, cationMolalConc, anionMolalConc, I_s);
+
+            powConcs_NMC *=
+                Foam::pow
+                (
+                    equilConc * Foam::pow(gamma_ca, 3),
+                    cationConcRatio
+                );
+        }
+
+        // aux_data->concNH3 = conc_NH3;
+        // aux_data->concOH = conc_OH;
+
+        aux_data->superSat =
+            Foam::pow
+            (
+                powConcs_NMC*conc_OH*conc_OH / k_sp_NMC,
+                1.0/3.0
+            );
+    }
+    else // totalConc_NH3 <= effectiveConc_
+    {
+        // aux_data->concNH3 = totalConc_NH3;
+
+        conc_OH = totalConc_Na + 2*(cationTotalConc - totalConc_SO4);
+
+        if (conc_OH > 1e-7)
+        {
+            conc_NH4 = 0.0;
+            conc_H = kw_ / conc_OH;
+
+            List<scalar> cationMolalConc(nTotalConc_);
+            for (j=0; j<nMetals_; j++)
+            {
+                cationMolalConc[j] = totalConcs[j];
+            }
+            cationMolalConc[nMetals_] = totalConc_Na;
+            cationMolalConc[nMetals_ + 1] = conc_NH4;
+            cationMolalConc[nMetals_ + 2] = conc_H;
+
+            List<scalar> anionMolalConc({totalConc_SO4, conc_OH});
+
+            scalar I_s = activityModel_->ionic_strength(
+                cationMolalConc, anionMolalConc);
 
             k_sp_NMC = 1.0;
             powConcs_NMC = 1.0;
             for (j=0; j<nMetals_; j++)
             {
-                equilConc = Foam::pow(10, -1.0*pConcs[j]);
-                // aux_data->metalCationConcs[j] = equilConc;
-
                 cationConcRatio = totalConcs[j] / cationTotalConc;
                 cationConcRatios[j] = cationConcRatio;
 
                 k_sp_NMC *= Foam::pow(k_sp_[j], cationConcRatio);
 
-                // We use the same activity coefficient calculated
-                // before starting the integration to save time.
-                // This is an approximation.
                 scalar gamma_ca = activityModel_->pair_activity_coeff(
-                    j, aux_data->cell_id);
-                    // j, cationMolalConc, anionMolalConc, aux_data->cell_id);
+                    j, cationMolalConc, anionMolalConc, I_s);
 
                 powConcs_NMC *=
                     Foam::pow
                     (
-                        equilConc * Foam::pow(gamma_ca, 3),
+                        totalConcs[j] * Foam::pow(gamma_ca, 3),
                         cationConcRatio
                     );
             }
-
-            // aux_data->concNH3 = conc_NH3;
-            // aux_data->concOH = conc_OH;
 
             aux_data->superSat =
                 Foam::pow
@@ -586,67 +627,20 @@ void Foam::solutionNMC::update(const realtype *y, UserData *aux_data,
                     powConcs_NMC*conc_OH*conc_OH / k_sp_NMC,
                     1.0/3.0
                 );
+
+            // aux_data->concOH = conc_OH;
         }
-        else // totalConc_NH3 <= effectiveConc_
+        else
         {
-            // aux_data->concNH3 = totalConc_NH3;
-
-            conc_OH = totalConc_Na + 2*(cationTotalConc - totalConc_SO4);
-
-            if (conc_OH > 1e-7)
+            for (j=0; j<nMetals_; j++)
             {
-                k_sp_NMC = 1.0;
-                powConcs_NMC = 1.0;
-                for (j=0; j<nMetals_; j++)
-                {
-                    cationConcRatio = totalConcs[j] / cationTotalConc;
-                    cationConcRatios[j] = cationConcRatio;
-
-                    k_sp_NMC *= Foam::pow(k_sp_[j], cationConcRatio);
-
-                    scalar gamma_ca = activityModel_->pair_activity_coeff(
-                        j, aux_data->cell_id);
-
-                    powConcs_NMC *=
-                        Foam::pow
-                        (
-                            totalConcs[j] * Foam::pow(gamma_ca, 3),
-                            cationConcRatio
-                        );
-                }
-
-                aux_data->superSat =
-                    Foam::pow
-                    (
-                        powConcs_NMC*conc_OH*conc_OH / k_sp_NMC,
-                        1.0/3.0
-                    );
-
-                // aux_data->concOH = conc_OH;
+                cationConcRatios[j] = totalConcs[j] / cationTotalConc;
             }
-            else
-            {
-                for (j=0; j<nMetals_; j++)
-                {
-                    cationConcRatios[j] = totalConcs[j] / cationTotalConc;
-                }
 
-                aux_data->superSat = 0.0;
-                // aux_data->concOH = 1e-7;
-            }
+            aux_data->superSat = 0.0;
+            // aux_data->concOH = 1e-7;
         }
-    // }
-    // else // cationTotalConc <= effectiveConc_
-    // {
-    //     for (j=0; j<nMetals_; j++)
-    //     {
-    //         aux_data->metalCationConcs[j] = 0.0;
-    //         cationConcRatios[j] = 0.0;
-    //     }
-    //     aux_data->concNH3 = 0.0;
-    //     aux_data->concOH = 0.0;
-    //     aux_data->superSat = 0.0;
-    // }
+    }
 }
 
 void Foam::solutionNMC::update()
@@ -878,8 +872,8 @@ void Foam::solutionNMC::update()
 
                     List<scalar> anionMolalConc({totalConc_SO4, conc_OH});
 
-                    activityModel_->update_ionic_strength(
-                        cationMolalConc, anionMolalConc, celli);
+                    scalar I_s = activityModel_->ionic_strength(
+                        cationMolalConc, anionMolalConc);
 
                     k_sp_NMC = 1.0;
                     powConcs_NMC = 1.0;
@@ -894,7 +888,7 @@ void Foam::solutionNMC::update()
                         k_sp_NMC *= Foam::pow(k_sp_[j], cationConcRatio);
 
                         scalar gamma_ca = activityModel_->pair_activity_coeff(
-                            j, cationMolalConc, anionMolalConc, celli);
+                            j, cationMolalConc, anionMolalConc, I_s);
 
                         powConcs_NMC *=
                             Foam::pow
@@ -937,8 +931,8 @@ void Foam::solutionNMC::update()
 
                         List<scalar> anionMolalConc({totalConc_SO4, conc_OH});
 
-                        activityModel_->update_ionic_strength(
-                            cationMolalConc, anionMolalConc, celli);
+                        scalar I_s = activityModel_->ionic_strength(
+                            cationMolalConc, anionMolalConc);
                         
                         k_sp_NMC = 1.0;
                         powConcs_NMC = 1.0;
@@ -950,7 +944,7 @@ void Foam::solutionNMC::update()
                             k_sp_NMC *= Foam::pow(k_sp_[j], cationConcRatio);
 
                             scalar gamma_ca = activityModel_->pair_activity_coeff(
-                                j, cationMolalConc, anionMolalConc, celli);
+                                j, cationMolalConc, anionMolalConc, I_s);
 
                             powConcs_NMC *=
                                 Foam::pow

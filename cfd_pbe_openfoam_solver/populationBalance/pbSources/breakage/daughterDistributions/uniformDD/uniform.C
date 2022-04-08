@@ -63,6 +63,13 @@ uniform::distribution
         (6.0 / (k + 3.0)) * pow(Li, k);
 }
 
+
+scalar uniform::distribution(scalar Li, int k) const
+{
+    return
+        (6.0 / (k + 3.0)) * pow(Li, k);
+}
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace daughterDistributions

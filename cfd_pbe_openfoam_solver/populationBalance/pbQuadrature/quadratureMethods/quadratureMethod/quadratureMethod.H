@@ -94,6 +94,9 @@ public:
         //- Calculates nodes and weights of the reconstructed NDF
         virtual void nodesAndWeights(const Field<scalar>&) = 0;
 
+        //- Return the inversion algorithm
+        const inversionAlgorithm& invAlgorithm() const;
+
         //- Returns const access to the nodes
         const PtrList<volScalarField>& nodes() const
         {

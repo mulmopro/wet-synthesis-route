@@ -25,6 +25,9 @@ and the OpenFOAM Foundation.
 #include "growthModel.H"
 #include "nucleationRateModel.H"
 #include "nucleateSizeModel.H"
+#include "aggregationList.H"
+#include "breakageList.H"
+#include "quadratureMethod.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -48,6 +51,8 @@ Foam::populationBalances::noPBM::noPBM
 )
 :
     populationBalance(mesh, turbulence, solution),
+
+    alphaMin_(0),
 
     dSmall_(0),
 
@@ -89,8 +94,8 @@ const Foam::growthModel& Foam::populationBalances::noPBM::growth()
 const
 {
     FatalErrorInFunction
-        << "Invalid request of growth model when no population balance model"
-        << "is active" << exit(FatalError);
+        << "Invalid request of growth model when no population balance "
+        << "model is active" << exit(FatalError);
 
     return growthModel::New(*this, *this)();
 }
@@ -101,8 +106,8 @@ Foam::populationBalances::noPBM::nucleationRate()
 const
 {
     FatalErrorInFunction
-        << "Invalid request of growth model when no population balance model"
-        << "is active" << exit(FatalError);
+        << "Invalid request of nucleation model when no population balance "
+        << "model is active" << exit(FatalError);
 
     return nucleationRateModel::New(*this, *this)();
 }
@@ -112,12 +117,44 @@ const Foam::nucleateSizeModel& Foam::populationBalances::noPBM::nucleateSize()
 const
 {
     FatalErrorInFunction
-        << "Invalid request of growth model when no population balance model"
-        << "is active" << exit(FatalError);
+        << "Invalid request of nucleate size model when no population balance "
+        << "model is active" << exit(FatalError);
 
     return nucleateSizeModel::New(*this, *this)();
 }
 
+
+const Foam::aggregationList& Foam::populationBalances::noPBM::aggregation()
+const
+{
+    FatalErrorInFunction
+        << "Invalid request of aggregation model when no population balance "
+        << "model is active" << exit(FatalError);
+
+    return autoPtr<aggregationList>(new aggregationList(*this, *this))();
+}
+
+
+const Foam::breakageList& Foam::populationBalances::noPBM::breakage()
+const
+{
+    FatalErrorInFunction
+        << "Invalid request of breakage model when no population balance "
+        << "model is active" << exit(FatalError);
+
+    return autoPtr<breakageList>(new breakageList(*this, *this))();
+}
+
+
+const Foam::quadratureMethod& Foam::populationBalances::noPBM::quadrature()
+const
+{
+    FatalErrorInFunction
+        << "Invalid request of quadrature model when no population balance "
+        << "model is active" << exit(FatalError);
+
+    return quadratureMethod::New(*this)();
+}
 
 const Foam::surfaceScalarField& Foam::populationBalances::noPBM::phi()
 const
@@ -212,6 +249,12 @@ uint8_t Foam::populationBalances::noPBM::numOfNodes() const
 uint8_t Foam::populationBalances::noPBM::numOfCoord() const
 {
     return numOfCoord_;
+}
+
+
+const Foam::dimensionedScalar& Foam::populationBalances::noPBM::alphaMin() const
+{
+    return alphaMin_;
 }
 
 

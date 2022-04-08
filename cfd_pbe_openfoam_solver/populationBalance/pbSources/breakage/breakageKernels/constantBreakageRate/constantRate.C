@@ -22,6 +22,7 @@ and the OpenFOAM Foundation.
 
 #include "constantRate.H"
 #include "kinematicMomentumTransportModel.H"
+#include "UserData.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -39,7 +40,8 @@ constantRate::constantRate
 )
 :
     breakageKernel(turbulence),
-    C_("C", dimless/dimTime, dict)
+    C_("C", dimless/dimTime, dict),
+    C_v_(C_.value())
 {}
 
 
@@ -78,6 +80,12 @@ constantRate::frequency
     );
 
     return tx;
+}
+
+
+scalar constantRate::frequency(scalar Li, const PhysChemData&) const
+{
+    return C_v_;
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

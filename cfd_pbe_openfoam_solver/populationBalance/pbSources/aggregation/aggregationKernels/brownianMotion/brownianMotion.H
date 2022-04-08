@@ -45,12 +45,16 @@ class brownianMotion
         //- Coefficient
         const dimensionedScalar KB_ =
             dimensionedScalar("KB", dimEnergy/dimTemperature, 1.38064852e-23);
+        const scalar KB_v_ = KB_.value();
 
         const dimensionedScalar T_;
+        const scalar T_v_;
 
         const dimensionedScalar rhoLiq_;
+        const scalar rhoLiq_v_;
 
         const dimensionedScalar CB_;
+        const scalar CB_v_;
 
 
 public:
@@ -76,6 +80,12 @@ public:
         (
             const DimensionedField<scalar, volMesh>&,
             const DimensionedField<scalar, volMesh>&
+        ) const;
+
+        //- Aggregation Frequency
+        virtual scalar frequency
+        (
+            scalar, scalar, const PhysChemData&
         ) const;
 };
 

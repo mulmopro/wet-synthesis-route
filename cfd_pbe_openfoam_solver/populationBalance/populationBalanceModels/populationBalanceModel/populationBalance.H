@@ -39,6 +39,9 @@ class populationBalance;
 class growthModel;
 class nucleationRateModel;
 class nucleateSizeModel;
+class aggregationList;
+class breakageList;
+class quadratureMethod;
 
 Ostream& operator<<(Ostream&, const populationBalance&);
 
@@ -144,6 +147,15 @@ public:
             //- Return the nucleate size model
             virtual const nucleateSizeModel& nucleateSize() const = 0;
 
+             //- Return the list of aggregation models
+            virtual const aggregationList& aggregation() const = 0;
+
+            //- Return the list of breakage models
+            virtual const breakageList& breakage() const = 0;
+
+            //- Return the quadrature model
+            virtual const quadratureMethod& quadrature() const = 0;
+
             //- Return the phi field
             virtual const surfaceScalarField& phi() const = 0;
 
@@ -181,6 +193,9 @@ public:
 
             //- Return the small diameters for the invalid cells
             virtual const List<scalar>& dSmall() const = 0;
+
+            //- Return Minimum value for alpha used to check moment no. 3
+            virtual const dimensionedScalar& alphaMin() const = 0;
 
             //- Return the crystal density
             virtual scalar crystalRho() const = 0;

@@ -58,7 +58,13 @@ erosion::distribution
     int k
 ) const
 {
-    
+    return
+        1.0 + pow(pow(Li, 3) - 1.0, k/3.0);
+}
+
+
+scalar erosion::distribution(scalar Li, int k) const
+{
     return
         1.0 + pow(pow(Li, 3) - 1.0, k/3.0);
 }

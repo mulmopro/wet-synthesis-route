@@ -29,6 +29,8 @@ and the OpenFOAM Foundation.
 namespace Foam
 {
 
+struct PhysChemData;
+
 /*---------------------------------------------------------------------------*\
                            Class aggregationKernel Declaration
 \*---------------------------------------------------------------------------*/
@@ -62,6 +64,12 @@ public:
         (
             const DimensionedField<scalar, volMesh>&,
             const DimensionedField<scalar, volMesh>&
+        ) const = 0;
+
+        //- Aggregation Frequency
+        virtual scalar frequency
+        (
+            scalar, scalar, const PhysChemData&
         ) const = 0;
 
 };

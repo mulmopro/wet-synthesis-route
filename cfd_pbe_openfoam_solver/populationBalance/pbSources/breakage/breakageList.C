@@ -21,6 +21,7 @@ and the OpenFOAM Foundation.
 ---------------------------------------------------------------------------- */
 
 #include "breakageList.H"
+#include "UserData.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -106,6 +107,25 @@ Foam::breakageList::source
     }
 
     return tx;
+}
+
+
+Foam::scalar Foam::breakageList::source
+(
+    const List<scalar>& nodes,
+    const List<scalar>& weights,
+    int k,
+    const PhysChemData& data
+) const
+{
+    scalar source_b = 0;
+
+    forAll(*this, i)
+    {
+        source_b += operator[](i).source(nodes, weights, k, data);
+    }
+
+    return source_b;
 }
 
 

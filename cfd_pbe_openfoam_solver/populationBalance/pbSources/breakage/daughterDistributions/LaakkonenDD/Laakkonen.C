@@ -62,6 +62,13 @@ Laakkonen::distribution
         pow(Li, k)*(3240.0/((k + 9.0)*(k + 12.0)*(k + 15.0)));
 }
 
+
+scalar Laakkonen::distribution(scalar Li, int k) const
+{
+    return
+        pow(Li, k)*(3240.0/((k + 9.0)*(k + 12.0)*(k + 15.0)));
+}
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace daughterDistributions

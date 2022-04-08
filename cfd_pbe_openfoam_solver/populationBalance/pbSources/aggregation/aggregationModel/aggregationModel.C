@@ -21,6 +21,7 @@ and the OpenFOAM Foundation.
 ---------------------------------------------------------------------------- */
 
 #include "aggregationModel.H"
+#include "UserData.H"
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -113,6 +114,53 @@ Foam::aggregationModel<CKernel, CEfficiency>::source
     }
 
     return tx;
+}
+
+
+template<class CKernel, class CEfficiency> Foam::scalar
+Foam::aggregationModel<CKernel, CEfficiency>::source
+(
+    const List<scalar>& nodes,
+    const List<scalar>& weights,
+    int k,
+    const PhysChemData& data
+) const
+{
+    scalar source_a = 0.0;
+
+    forAll(nodes, i)
+    {
+        const scalar weighti = weights[i];
+
+        const scalar nodei = nodes[i];
+
+        const scalar nodeiToPow3 = Foam::pow(nodei, 3.0);
+
+        const scalar nodeiToPowK = Foam::pow(nodei, k);
+
+        forAll(nodes, j)
+        {
+            const scalar nodej = nodes[j];
+
+            source_a +=
+                CKernel::frequency(nodei, nodej, data)
+              * CEfficiency::efficiency(nodei, nodej, data)
+              * weighti * weights[j]
+              *
+              (
+                    0.5
+                  * Foam::pow
+                    (
+                        nodeiToPow3
+                      + Foam::pow(nodej, 3.0)
+                      , k/3.0
+                    )
+                  - nodeiToPowK
+              );
+        }
+    }
+
+    return source_a;
 }
 
 // ************************************************************************* //

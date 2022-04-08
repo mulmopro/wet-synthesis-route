@@ -50,9 +50,11 @@ class bridgeFormation
 
         //- Yield strength of crystal
         const dimensionedScalar A_;
+        const scalar A_v_;
 
         //- Density of liquid
         const dimensionedScalar rhoLiq_;
+        const scalar rhoLiq_v_;
 
 
 public:
@@ -78,6 +80,11 @@ public:
         (
             const DimensionedField<scalar, volMesh>&,
             const DimensionedField<scalar, volMesh>&
+        ) const;
+
+        virtual scalar efficiency
+        (
+            scalar, scalar, const PhysChemData&
         ) const;
 };
 

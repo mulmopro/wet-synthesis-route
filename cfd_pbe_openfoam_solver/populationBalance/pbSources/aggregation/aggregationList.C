@@ -21,6 +21,7 @@ and the OpenFOAM Foundation.
 ---------------------------------------------------------------------------- */
 
 #include "aggregationList.H"
+#include "UserData.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -106,6 +107,25 @@ Foam::aggregationList::source
     }
 
     return tx;
+}
+
+
+Foam::scalar Foam::aggregationList::source
+(
+    const List<scalar>& nodes,
+    const List<scalar>& weights,
+    int k,
+    const PhysChemData& data
+) const
+{
+    scalar source_a = 0;
+
+    forAll(*this, i)
+    {
+        source_a += operator[](i).source(nodes, weights, k, data);
+    }
+
+    return source_a;
 }
 
 

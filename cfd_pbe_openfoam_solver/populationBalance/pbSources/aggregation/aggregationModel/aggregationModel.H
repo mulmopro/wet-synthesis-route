@@ -73,6 +73,15 @@ public:
             int
         ) const;
 
+        //- Return aggregation source for moment k
+        virtual scalar source
+        (
+            const List<scalar>&,
+            const List<scalar>&,
+            int,
+            const PhysChemData&
+        ) const;
+
 };
 
 

@@ -67,6 +67,17 @@ parabolic::distribution
         );
 }
 
+
+scalar parabolic::distribution(scalar Li, int k) const
+{
+    return
+        pow(Li, k)
+      * (
+            3 * C_ / (k + 3.0)
+          + (1.0 - C_/2.0) * 18 * (6.0 - k) / ((k + 9.0)*(k + 6.0)*(k + 3.0))
+        );
+}
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace daughterDistributions

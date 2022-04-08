@@ -22,6 +22,7 @@ and the OpenFOAM Foundation.
 
 #include "powerLawBreakage.H"
 #include "kinematicMomentumTransportModel.H"
+#include "UserData.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -39,9 +40,9 @@ powerLaw::powerLaw
 )
 :
     breakageKernel(turbulence),
-    C1_(readScalar(dict.lookup("C1"))),
-    C2_(readScalar(dict.lookup("C2"))),
-    C3_(readScalar(dict.lookup("C3")))
+    Cbr_("Cbr", dimless, dict),
+    Cbr_v_(Cbr_.value()),
+    gamma_(readScalar(dict.lookup("gamma")))
 {}
 
 
@@ -59,34 +60,37 @@ powerLaw::frequency
     const DimensionedField<scalar, volMesh>& Li
 ) const
 {
-    const fvMesh& mesh(Li.mesh());
+    const DimensionedField<scalar, volMesh> epsilon =
+        turbulence_.epsilon()().internalField();
 
-    tmp<DimensionedField<scalar, volMesh>> tx
-    (
-        new DimensionedField<scalar, volMesh>
+    const DimensionedField<scalar, volMesh> nu =
+        turbulence_.nu()().internalField();
+
+    return
+        Cbr_
+      * pow
         (
-            IOobject
-            (
-                "powerLawBreakageRate",
-                mesh.time().timeName(),
-                mesh,
-                IOobject::NO_READ,
-                IOobject::NO_WRITE,
-                false
-            ),
-            mesh,
-            dimless/dimTime,
-            C1_
-          * pow
-            (
-                turbulence_.epsilon()().field() / turbulence_.nu()().field(),
-                C2_ / 2.0
-            )
-          * pow(Li.field(), C3_)
+            Li / pow(pow(nu, 3) / epsilon, 0.25),
+            gamma_
         )
-    );
+      / pow(nu / epsilon, 0.5);
+}
 
-    return tx;
+
+scalar powerLaw::frequency(scalar Li, const PhysChemData& data) const
+{
+    const scalar epsilon = data.epsilon;
+
+    const scalar nu = data.nu;
+
+    return
+        Cbr_v_
+      * pow
+        (
+            Li / pow(pow(nu, 3) / epsilon, 0.25),
+            gamma_
+        )
+      / pow(nu / epsilon, 0.5);
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

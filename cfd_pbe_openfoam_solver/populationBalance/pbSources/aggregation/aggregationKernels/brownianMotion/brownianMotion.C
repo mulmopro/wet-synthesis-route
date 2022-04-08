@@ -22,6 +22,7 @@ and the OpenFOAM Foundation.
 
 #include "brownianMotion.H"
 #include "kinematicMomentumTransportModel.H"
+#include "UserData.H"
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -41,8 +42,11 @@ brownianMotion::brownianMotion
 :
     aggregationKernel(turbulence),
     T_("T", dimTemperature, dict),
+    T_v_(T_.value()),
     rhoLiq_("rhoLiq", dimDensity, dict),
-    CB_("CB", dimless, dict.lookupOrDefault<scalar>("CB", 1.0))
+    rhoLiq_v_(rhoLiq_.value()),
+    CB_("CB", dimless, dict.lookupOrDefault<scalar>("CB", 1.0)),
+    CB_v_(CB_.value())
 {}
 
 
@@ -68,6 +72,23 @@ brownianMotion::frequency
       * (
             Li / max(Lj, dimensionedScalar("small", dimLength, SMALL))
           + Lj / max(Li, dimensionedScalar("small", dimLength, SMALL))
+          + 2.0
+        );
+}
+
+
+scalar brownianMotion::frequency
+(
+    scalar Li, scalar Lj, const PhysChemData& data
+) const
+{
+    return
+        CB_v_
+      * 2 * KB_v_ * T_v_ / 3.0
+      / (data.nu * rhoLiq_v_)
+      * (
+            Li / max(Lj, SMALL)
+          + Lj / max(Li, SMALL)
           + 2.0
         );
 }

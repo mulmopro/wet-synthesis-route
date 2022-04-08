@@ -28,6 +28,9 @@ and the OpenFOAM Foundation.
 #include "growthModel.H"
 #include "nucleationRateModel.H"
 #include "nucleateSizeModel.H"
+#include "aggregationList.H"
+#include "breakageList.H"
+#include "inversionAlgorithm.H"
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
@@ -48,12 +51,6 @@ int Foam::odeSolver::odeEqs
     ydot_data = N_VGetArrayPointer(ydot);
 
     aux_data = static_cast<UserData*>(user_data);
-
-    // if (aux_data->cell_id == )
-    // {
-    //     Info<<"time: "<<t<<endl
-    //         <<"y_data: "<<y_data[0]<<" "<<y_data[1]<<" "<<y_data[2]<<endl;
-    // }
 
     nMetals = aux_data->nMetals;
     nMoments = aux_data->nMoments;
@@ -82,6 +79,23 @@ int Foam::odeSolver::odeEqs
         throw lowMetalConcException{};
     }
 
+    List<scalar> moments(nMoments);
+
+    for(i=0; i < nMoments; i++)
+    {
+        scalar moment_i = y_data[i + nMetals];
+        if (moment_i < -1.0*SMALL)
+        {
+            for(j=0; j < nMetals + nMoments; j++)
+            {
+                ydot_data[j] = 0.0;
+            }
+
+            return (1);
+        }
+        moments[i] = moment_i;
+    }
+
     aux_data->solution_.update(y_data, aux_data, cationConcRatios);
 
     superSat = aux_data->superSat;
@@ -103,24 +117,58 @@ int Foam::odeSolver::odeEqs
     {
         for(i=1; i < nMoments; i++)
         {
-            ydot_data[i + nMetals] = i * growthRate * y_data[i + nMetals - 1]
+            ydot_data[i + nMetals] = i * growthRate * moments[i - 1]
                 + nucRate*pow(nucSize, i);
         }
 
         precRate = kv * ydot_data[3 + nMetals] * crystalRho / crystalMW;
+
+        if (moments[3] > 1e-14)
+        {
+            List<List<scalar>> nodesAndWeights(aux_data->invAlgm_.inversion(moments));
+
+            List<scalar>& nodes = nodesAndWeights[0];
+            List<scalar>& weights = nodesAndWeights[1];
+
+            PhysChemData& physChemData = aux_data->physChemData_;
+            physChemData.growthRate = growthRate;
+
+            for(i=0; i < nMoments; i++)
+            {
+                if (i != 3)
+                {
+                    ydot_data[i + nMetals] +=
+                        aux_data->aggregation_.source(nodes, weights, i, physChemData)
+                      + aux_data->breakage_.source(nodes, weights, i, physChemData);
+                }
+            }
+        }
     }
     else
     {
-        ydot_data[nMetals + 1] = growthRate * y_data[nMetals]
+        ydot_data[nMetals + 1] = growthRate * moments[0]
                 + nucRate*nucSize;
 
         precRate = 
             kv
           * (
-                3.0*growthRate*pow(y_data[nMetals + 1], 2) / y_data[nMetals] +
+                3.0*growthRate*pow(moments[1], 2) / moments[0] +
                 nucRate*pow(nucSize, 3)
             )
           * crystalRho / crystalMW;
+
+        List<scalar> nodes(1, moments[1] / moments[0]);
+        List<scalar> weights(1, moments[0]);
+
+        PhysChemData& physChemData = aux_data->physChemData_;
+        physChemData.growthRate = growthRate;
+
+        for(i=0; i < nMoments; i++)
+        {
+            ydot_data[i + nMetals] +=
+                aux_data->aggregation_.source(nodes, weights, i, physChemData)
+              + aux_data->breakage_.source(nodes, weights, i, physChemData);
+        }
     }
 
     for(i=0; i < nMetals; i++)

@@ -47,6 +47,12 @@ protected:
         //- Reference to the diameters for invalid cells
         const List<scalar>& dSmall_;
 
+        //- Minimum value for alpha used to check moment no. 3
+        const dimensionedScalar& alphaMin_;
+
+        //- Shape factor
+        const scalar kv_;
+
         //- Reference to the number of nodes
         const uint8_t numOfNodes_;
 
@@ -57,7 +63,7 @@ protected:
         PtrList<volScalarField>& weights_;
 
         //- Node reduction based on the zeta values
-        bool nodeReduction(const List<scalar>&, int&);
+        int nodeReduction(const List<scalar>&, int) const;
 
 public:
 
@@ -108,6 +114,9 @@ public:
 
         //- Calculates nodes and weights of the reconstructed NDF
         virtual void inversion(const Field<scalar>&) = 0;
+
+        //- Calculates nodes and weights for a single cell
+        virtual List<List<scalar>> inversion(const List<scalar>&) const = 0;
 
         //- Calculates nodes and weights of the reconstructed NDF on the
         //- fixed value boundaries

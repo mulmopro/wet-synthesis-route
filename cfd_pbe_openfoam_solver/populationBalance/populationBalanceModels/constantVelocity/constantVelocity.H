@@ -172,6 +172,24 @@ public:
                 return nucleateSize_();
             }
 
+            //- Return the list of aggregation models
+            const aggregationList& aggregation() const
+            {
+                return aggregationList_();
+            }
+
+            //- Return the list of breakage models
+            const breakageList& breakage() const
+            {
+                return breakageList_();
+            }
+
+            //- Return the quadrature model
+            const quadratureMethod& quadrature() const
+            {
+                return quadrature_();
+            }
+
             //- Return the phi field
             const surfaceScalarField& phi() const
             {
@@ -232,6 +250,12 @@ public:
             uint8_t numOfCoord() const
             {
                 return numOfCoord_;
+            }
+
+            //- Return Minimum value for alpha used to check moment no. 3
+            const dimensionedScalar& alphaMin() const
+            {
+                return alphaMin_;
             }
 
             //- Return the small diameters for the invalid cells

@@ -89,4 +89,33 @@ Foam::breakageModel<BKernel, BDaughterDist>::source
     return tx;
 }
 
+
+template<class BKernel, class BDaughterDist> Foam::scalar
+Foam::breakageModel<BKernel, BDaughterDist>::source
+(
+    const List<scalar>& nodes,
+    const List<scalar>& weights,
+    int k,
+    const PhysChemData& data
+) const
+{
+    scalar source_b = 0.0;
+
+    forAll(nodes, i)
+    {
+        const scalar nodei = nodes[i];
+
+        source_b +=
+            BKernel::frequency(nodei, data)
+          * weights[i]
+          *
+          (
+              BDaughterDist::distribution(nodei, k)
+            - Foam::pow(nodei, k)
+          );
+    }
+
+    return source_b;
+}
+
 // ************************************************************************* //

@@ -100,5 +100,9 @@ Foam::quadratureMethod::~quadratureMethod()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
+const Foam::inversionAlgorithm& Foam::quadratureMethod::invAlgorithm() const
+{
+    return invAlgm_();
+};
 
 // ************************************************************************* //

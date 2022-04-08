@@ -43,13 +43,11 @@ class powerLaw
     // Private data
 
         //- Coefficient
-        const scalar C1_;
+        const dimensionedScalar Cbr_;
+        const scalar Cbr_v_;
 
-        //- shear rate exponent
-        const scalar C2_;
-
-        //- diameter exponent
-        const scalar C3_;
+        //- exponent
+        const scalar gamma_;
 
 public:
 
@@ -74,6 +72,9 @@ public:
         (
             const DimensionedField<scalar, volMesh>&
         ) const;
+
+        //- Breakage Frequency
+        virtual scalar frequency(scalar, const PhysChemData&) const;
 };
 
 

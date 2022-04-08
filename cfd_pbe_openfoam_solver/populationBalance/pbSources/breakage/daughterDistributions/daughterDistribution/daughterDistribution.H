@@ -29,6 +29,8 @@ and the OpenFOAM Foundation.
 namespace Foam
 {
 
+struct PhysChemData;
+
 /*---------------------------------------------------------------------------*\
                            Class daughterDistribution Declaration
 \*---------------------------------------------------------------------------*/
@@ -61,6 +63,8 @@ public:
             const DimensionedField<scalar, volMesh>&,
             int
         ) const = 0;
+
+        virtual scalar distribution(scalar, int) const = 0;
 };
 
 

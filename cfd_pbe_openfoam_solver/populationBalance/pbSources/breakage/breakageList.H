@@ -72,12 +72,21 @@ public:
 
     // Member Functions
 
-        //- Add the frame acceleration
+        //- Calculate the breakage models
         tmp<DimensionedField<scalar, volMesh>> source
         (
             const PtrList<volScalarField>&,
             const PtrList<volScalarField>&,
             int
+        ) const;
+
+        //- Calculate the breakage models
+        scalar source
+        (
+            const List<scalar>&,
+            const List<scalar>&,
+            int,
+            const PhysChemData&
         ) const;
 
 };

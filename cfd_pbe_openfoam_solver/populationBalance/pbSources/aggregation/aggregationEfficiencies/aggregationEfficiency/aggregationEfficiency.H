@@ -29,6 +29,8 @@ and the OpenFOAM Foundation.
 namespace Foam
 {
 
+struct PhysChemData;
+
 /*---------------------------------------------------------------------------*\
                            Class swarmCorrection Declaration
 \*---------------------------------------------------------------------------*/
@@ -63,6 +65,11 @@ public:
         (
             const DimensionedField<scalar, volMesh>&,
             const DimensionedField<scalar, volMesh>&
+        ) const = 0;
+
+        virtual scalar efficiency
+        (
+            scalar, scalar, const PhysChemData&
         ) const = 0;
 };
 

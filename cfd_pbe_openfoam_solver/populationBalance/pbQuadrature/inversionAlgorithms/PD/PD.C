@@ -190,6 +190,133 @@ void Foam::inversionAlgorithms::PD::inversion
 }
 
 
+Foam::List<Foam::List<Foam::scalar>>
+Foam::inversionAlgorithms::PD::inversion
+(
+    const List<scalar>& moments
+) const
+{
+    const scalar M0 = moments[0];
+
+    int n = numOfNodes_;
+
+    // Defining an auxiliary index
+    label fIndex = 2*n + 1;
+
+    // Defining P matrix as a one-dimensional array
+    // with initial zero elements
+    List<scalar> P(fIndex*(fIndex + 1)/2, Zero);
+
+    // Assigning the first element to 1.0
+    P[0] = 1.0;
+
+    bool positiveMoms = true;
+
+    // Assigning the elements corresponding to the second column of P
+    for (int i=0; i<(fIndex - 1); i++)
+    {
+        scalar moment = moments[i];
+        if (moment > 0.0)
+        {
+            P[i + fIndex] = Foam::pow(-1.0, i) * moment;
+        }
+        else
+        {
+            positiveMoms = false;
+            break;
+        }
+    }
+
+    List<List<scalar>> nodesAndWeights(2, List<scalar>(n));
+
+    List<scalar>& nodes = nodesAndWeights[0];
+    List<scalar>& weights = nodesAndWeights[1];
+
+    if (positiveMoms && moments[3]*kv_ > alphaMin_.value())
+    {
+        // Defining zeta array
+        List<scalar> zeta(fIndex - 1, Zero);
+
+        // Assigning other elements of the P and
+        // calculating the elements of the zeta at the same time
+        for (int j=2; j<(fIndex); j++)
+        {
+            // Auxiliary indexes for mapping the 2D P matrix to 1D P array
+            label fb = j*(2*fIndex + 1 - j) / 2;
+            label fb_1 = fb - fIndex + j - 1;
+            label fb_2 = fb_1 - fIndex + j - 2;
+
+            for (int i=0; i<(fIndex - j); i++)
+            {
+                P[i + fb] = 
+                            (
+                                P[fb_1] * P[i + 1 + fb_2]
+                            - P[fb_2] * P[i + 1 + fb_1]
+                            );
+            }
+            
+            scalar product = P[fb_1] * P[fb_2];
+
+            if (product > 0)
+            {
+                zeta[j - 1] = P[fb]/product;
+            }
+            // else
+            // {
+            //     zeta[1] = 0.0;
+            // }
+        }
+
+        // Declaring diagonal and off-diagonal elements of Jacobi matrix
+        scalar a[n];
+        scalar b[n-1];
+
+        // Declaring eigen vector of the Jacobi matrix
+        scalar eigVector[n][n];
+        memset(eigVector, 0, n*n*sizeof eigVector[0][0]);
+        
+        scalar work[fIndex - 3];
+        int info;
+        char choice='I';
+
+        // Calculating the elements of the Jacobi matrix
+        for (int i=0; i<(n - 1); i++)
+        {
+            a[i] = zeta[2*i + 1] + zeta[2*i];
+            b[i] = -1.0 * Foam::sqrt(zeta[2*i + 2] * zeta[2*i + 1]);
+        }
+
+        // Calculating last element of the diagonal out of the loop
+        // since it has one element more than off-diagonal 
+        a[n-1] = zeta[fIndex - 2] + zeta[fIndex - 3];
+        
+        // Eigen vector calculation of the Jacobi matrix
+        dsteqr_(choice, &n, a, b, &eigVector[0][0], &n, work, &info);
+
+        // Calculating nodes and weights using the eigen vectors
+        for (int i=0; i<n; i++)
+        {
+            if (a[i] < 0)
+            {
+                FatalErrorInFunction << "negative node!";
+            }
+            nodes[i] = a[i];
+            weights[i] = M0 * Foam::pow(eigVector[i][0], 2);
+        }
+    }
+    else
+    {
+        for (int i=0; i<n; i++)
+        {
+            nodes[i] = dSmall_[i];
+            weights[i] = 0.0;
+        }
+    }
+
+    return nodesAndWeights;
+}
+
+
 void Foam::inversionAlgorithms::PD::inversionBoundary()
 {
     int n = numOfNodes_;

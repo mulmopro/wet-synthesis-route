@@ -42,11 +42,13 @@ autoPtr<incompressible::momentumTransportModel> turbulence
     incompressible::momentumTransportModel::New(U, phi, laminarTransport)
 );
 
-solutionNMC solution_nmc(mesh, phi, turbulence());
+incompressible::momentumTransportModel& turb_ref = turbulence();
+
+solutionNMC solution_nmc(mesh, phi, turb_ref);
 
 autoPtr<populationBalance> pb
 (
-    populationBalance::New(mesh, turbulence(), solution_nmc)
+    populationBalance::New(mesh, turb_ref, solution_nmc)
 );
 
 populationBalance& pb_ref = pb();

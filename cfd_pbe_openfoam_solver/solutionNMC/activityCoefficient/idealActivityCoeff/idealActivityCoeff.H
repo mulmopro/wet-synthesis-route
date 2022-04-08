@@ -69,15 +69,13 @@ public:
     // Member Functions
 
         //- Calculate ionic strength
-        virtual void update_ionic_strength(
-            const List<scalar>&, const List<scalar>&, label);
+        virtual scalar ionic_strength(
+            const List<scalar>&, const List<scalar>&);
 
         //- Calculate activity for a cation-OH pair
         virtual scalar pair_activity_coeff(
-            label, const List<scalar>&, const List<scalar>&, label);
+            label, const List<scalar>&, const List<scalar>&, scalar);
 
-        //- Get pre-calculated activity coefficient
-        virtual scalar pair_activity_coeff(label, label);
 };
 
 

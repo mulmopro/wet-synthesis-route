@@ -56,34 +56,26 @@ Foam::activityCoeffModels::idealActivityCoeff::~idealActivityCoeff()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void Foam::activityCoeffModels::idealActivityCoeff::update_ionic_strength
+Foam::scalar Foam::activityCoeffModels::idealActivityCoeff::ionic_strength
 (
     const Foam::List<Foam::scalar>& cationMolalConc,
-    const Foam::List<Foam::scalar>& anionMolalConc,
-    Foam::label
-)
-{}
-
-
-Foam::scalar Foam::activityCoeffModels::idealActivityCoeff::pair_activity_coeff
-(
-    Foam::label,
-    const Foam::List<Foam::scalar>& cationMolalConc,
-    const Foam::List<Foam::scalar>& anionMolalConc,
-    Foam::label
+    const Foam::List<Foam::scalar>& anionMolalConc
 )
 {
-    return 1.0;
+    return SMALL;
 }
 
 
 Foam::scalar Foam::activityCoeffModels::idealActivityCoeff::pair_activity_coeff
 (
     Foam::label,
-    Foam::label
+    const Foam::List<Foam::scalar>& cationMolalConc,
+    const Foam::List<Foam::scalar>& anionMolalConc,
+    Foam::scalar
 )
 {
     return 1.0;
 }
+
 
 // ************************************************************************* //

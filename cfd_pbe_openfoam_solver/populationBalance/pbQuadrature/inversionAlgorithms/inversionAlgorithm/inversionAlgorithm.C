@@ -32,34 +32,30 @@ namespace Foam
 
 // * * * * * * * * * * * * * * * Protected Member Functions  * * * * * * * * //
 
-bool Foam::inversionAlgorithm::nodeReduction
+int Foam::inversionAlgorithm::nodeReduction
 (
     const Foam::List<scalar>& zeta,
-    int& n
-)
+    int n
+) const
 {
-    bool realizableMoms = true;
+    constexpr scalar smallZeta = 1e-20;
 
-    label counter = 1;
-
-    if (zeta[0] <= 0)
+    if (zeta[0] <= smallZeta)
     {
-        n = 1;
-        return false;
+        return 1;
     }
-    
+
+    int counter = 1;
     for (int i=2; i<2*n-1; i+=2)
     {
-        if (zeta[i] <= 0 || zeta[i-1] <= 0)
+        if (zeta[i] <= smallZeta || zeta[i-1] <= smallZeta)
         {
-            n = counter;
-            realizableMoms = false;
-            break;
+            return counter;
         }
         counter++;
     }
 
-    return realizableMoms;
+    return n;
 }
 
 
@@ -74,6 +70,8 @@ Foam::inversionAlgorithm::inversionAlgorithm
 :
     moments_(pb.moments()),
     dSmall_(pb.dSmall()),
+    alphaMin_(pb.alphaMin()),
+    kv_(pb.kv_),
     numOfNodes_(pb.numOfNodes()),
     nodes_(nodes),
     weights_(weights)

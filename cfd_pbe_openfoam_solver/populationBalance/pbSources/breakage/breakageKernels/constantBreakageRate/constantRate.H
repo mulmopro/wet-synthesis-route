@@ -44,6 +44,7 @@ class constantRate
 
         //- Constant breakage rate
         const dimensionedScalar C_;
+        const scalar C_v_;
 
 public:
 
@@ -68,6 +69,9 @@ public:
         (
             const DimensionedField<scalar, volMesh>&
         ) const;
+
+        //- Breakage Frequency
+        virtual scalar frequency(scalar, const PhysChemData&) const;
 };
 
 

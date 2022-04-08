@@ -87,21 +87,7 @@ Foam::activityCoeffModels::bromleyActivityCoeff::bromleyActivityCoeff
     nCation_(solution.nMetals() + 3),
     nAnion_(2),
 
-    z_a_({2, 1}),
-
-    I_
-    (
-        IOobject
-        (
-            "ionic_strength",
-            mesh_.time().timeName(),
-            mesh_,
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
-        ),
-        mesh_,
-        dimensionedScalar("zero", dimMoles/dimVol, 0.0)
-    )
+    z_a_({2, 1})
 {
     double B_allMetals[3][2];
 
@@ -152,28 +138,6 @@ Foam::activityCoeffModels::bromleyActivityCoeff::bromleyActivityCoeff
     {
         z_c_[i] = 1;
     }
-
-    for (int i=0; i < nMetals; i++)
-    {
-        word metalName(solution.metalNames()[i]);
-
-        pairActivityCoeff_.append
-        (
-            new DimensionedField<scalar, volMesh>
-            (
-                IOobject
-                (
-                    "pairActivityCoeff_" + metalName + "_OH",
-                    mesh_.time().timeName(),
-                    mesh_,
-                    IOobject::NO_READ,
-                    IOobject::NO_WRITE
-                ),
-                mesh_,
-                dimensionedScalar("zero", dimless, 1.0)
-            )
-        );
-    }
 }
 
 
@@ -185,29 +149,26 @@ Foam::activityCoeffModels::bromleyActivityCoeff::~bromleyActivityCoeff()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void Foam::activityCoeffModels::bromleyActivityCoeff::update_ionic_strength
+Foam::scalar Foam::activityCoeffModels::bromleyActivityCoeff::ionic_strength
 (
     const Foam::List<Foam::scalar>& cationMolalConc,
-    const Foam::List<Foam::scalar>& anionMolalConc,
-    Foam::label celli
+    const Foam::List<Foam::scalar>& anionMolalConc
 )
 {
-    scalar I_celli = 0.0;
+    scalar I_s = 0.0;
 
     int i;
     for (i=0; i < nCation_; i++)
     {
-        I_celli += cationMolalConc[i] * Foam::sqr(z_c_[i]);
+        I_s += cationMolalConc[i] * Foam::sqr(z_c_[i]);
     }
 
     for (i=0; i < nAnion_; i++)
     {
-        I_celli += anionMolalConc[i] * Foam::sqr(z_a_[i]);
+        I_s += anionMolalConc[i] * Foam::sqr(z_a_[i]);
     }
 
-    I_celli *= 0.5;
-
-    I_[celli] = I_celli;
+    return 0.5*I_s;
 }
 
 
@@ -217,15 +178,13 @@ Foam::scalar Foam::activityCoeffModels::bromleyActivityCoeff
     Foam::label id_metal,
     const Foam::List<Foam::scalar>& cationMolalConc,
     const Foam::List<Foam::scalar>& anionMolalConc,
-    Foam::label celli
+    Foam::scalar I_s
 )
 {
     label id_OH = 1;
 
     scalar z_c = z_c_[id_metal];
     scalar z_a = z_a_[id_OH];
-
-    scalar I_s = I_[celli];
 
     scalar log_gamma_pure_ac = pure_pair_activity_coeff(
         id_metal, id_OH, z_c, z_a, I_s);
@@ -295,24 +254,11 @@ Foam::scalar Foam::activityCoeffModels::bromleyActivityCoeff
         Foam::pow
         (
             10,
-            (nu_c*f_c + nu_a*f_a - coeff * (nu_c*z_c*z_c + nu_a*z_a*z_a))
-          / (nu_c + nu_a)
+            log_gamma
         );
-
-    pairActivityCoeff_[id_metal][celli] = gamma_ac;
 
     return gamma_ac;
 }
 
-
-Foam::scalar Foam::activityCoeffModels::bromleyActivityCoeff
-::pair_activity_coeff
-(
-    Foam::label id_metal,
-    Foam::label celli
-)
-{
-    return pairActivityCoeff_[id_metal][celli];
-}
 
 // ************************************************************************* //

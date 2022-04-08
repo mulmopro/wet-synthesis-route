@@ -28,6 +28,8 @@ and the OpenFOAM Foundation.
 namespace Foam
 {
 
+struct PhysChemData;
+
 /*---------------------------------------------------------------------------*\
                            Class breakageKernel Declaration
 \*---------------------------------------------------------------------------*/
@@ -59,6 +61,9 @@ public:
         (
             const DimensionedField<scalar, volMesh>&
         ) const = 0;
+
+        //- Breakage Frequency
+        virtual scalar frequency(scalar, const PhysChemData&) const = 0;
 };
 
 
