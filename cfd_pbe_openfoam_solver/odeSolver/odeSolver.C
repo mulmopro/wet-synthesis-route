@@ -110,7 +110,7 @@ int Foam::odeSolver::odeEqs
     crystalRho = aux_data->crystalRho;
     crystalMW = aux_data->crystalMW;
 
-    // derivative of m0
+    // derivative of m0 due to the nucleation
     ydot_data[nMetals] = nucRate;
 
     if (nMoments > 2)
@@ -196,7 +196,7 @@ Foam::odeSolver::odeSolver
 (
     const fvMesh& mesh,
     const populationBalance& pb,
-    const solutionNMC& solution
+    solutionNMC& solution
 )
 :
     IOdictionary
@@ -259,6 +259,14 @@ Foam::odeSolver::odeSolver
         }
     }
 
+    y0_ = NULL;
+    y0_ = N_VNew_Serial(N_);
+    y0_data_ = N_VGetArrayPointer(y0_);
+
+    yout_ = NULL;
+    yout_ = N_VNew_Serial(N_);
+    yout_data_ = N_VGetArrayPointer(yout_);
+
     constraints_ = NULL;
     constraints_ = N_VNew_Serial(N_);
 
@@ -277,6 +285,60 @@ Foam::odeSolver::odeSolver
     // {
     //     constraints_data[i] = 0.0;
     // }
+
+    J_ = NULL;
+    J_ = SUNDenseMatrix(N_, N_);
+
+    LS_ = NULL;
+    LS_ = SUNLinSol_LapackDense(yout_, J_);
+
+    cvode_mem_ = NULL;
+    cvode_mem_ = CVodeCreate(CV_BDF);
+
+    // use the first 
+    aux_data_ = new UserData(0, solution, pb, pb.turbulence());
+
+    int flag;
+    flag = CVodeSetUserData(cvode_mem_, aux_data_);
+    if (flag != CV_SUCCESS){
+        FatalErrorInFunction << "CVodeSetUserData failed"
+            << endl << exit(FatalError);}
+
+    // integration starts always from t0=0.0 as no source term depends on time
+    flag = CVodeInit(cvode_mem_, odeEqs, 0.0, y0_);
+    if (flag != CV_SUCCESS){
+        FatalErrorInFunction << "CVodeInit failed"
+            << endl << exit(FatalError);}
+
+    flag = CVodeSVtolerances(cvode_mem_, relTol_, absTol_);
+    if (flag != CV_SUCCESS){
+        FatalErrorInFunction << "CVodeSVtolerances failed"
+            << endl << exit(FatalError);}
+
+    flag = CVodeSetLinearSolver(cvode_mem_, LS_, J_);
+    if (flag != CV_SUCCESS){
+        FatalErrorInFunction << "CVodeSetLinearSolver failed"
+            << endl << exit(FatalError);}
+
+    flag = CVodeSetInitStep(cvode_mem_, initialStepSize_);
+    if (flag != CV_SUCCESS){
+        FatalErrorInFunction << "CVodeSetInitStep failed"
+            << endl << exit(FatalError);}
+
+    flag = CVodeSetMaxStep(cvode_mem_, maxStepSize_);
+    if (flag != CV_SUCCESS){
+        FatalErrorInFunction << "CVodeSetMaxStep failed"
+            << endl << exit(FatalError);}
+
+    // flag = CVodeSetConstraints(cvode_mem_, constraints_);
+    // if (flag != CV_SUCCESS){
+    //     FatalErrorInFunction << "CVodeSetConstraints failed"
+    //         << endl << exit(FatalError);}
+
+    // flag = CVodeSetJacFn(cvode_mem_, Jacobian);
+
+    // long int mxsteps;
+    // flag = CVodeSetMaxNumSteps(cvode_mem_, mxsteps);
 }
 
 
@@ -284,132 +346,79 @@ Foam::odeSolver::odeSolver
 
 Foam::odeSolver::~odeSolver()
 {
+    delete aux_data_;
+
     N_VDestroy(absTol_);
     N_VDestroy(constraints_);
+    N_VDestroy(y0_);
+    N_VDestroy(yout_);
+    CVodeFree(&cvode_mem_);
+    SUNMatDestroy(J_);
+    SUNLinSolFree(LS_);
 }
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void Foam::odeSolver::solve(realtype *y, realtype t0, realtype tout,
-    UserData *aux_data)
+void Foam::odeSolver::solve(realtype *y, realtype t0, realtype tout)
 {
     int i, flag;
     realtype t_reached;
-    realtype *y0_data, *yout_data;
-
-    N_Vector y0;
-    N_Vector yout;
-    SUNMatrix J;
-    SUNLinearSolver LS;
-    void *cvode_mem;
-
-    y0 = NULL;
-    yout = NULL;
-    J = NULL;
-    LS = NULL;
-    cvode_mem = NULL;
-
-    y0 = N_VNew_Serial(N_);
-
-    cvode_mem = CVodeCreate(CV_BDF);
-
-    J = SUNDenseMatrix(N_, N_);
-
-    yout = N_VNew_Serial(N_);
-    // SUNMatrix A = SUNDenseMatrix(N, N);
-
-    LS = SUNLinSol_LapackDense(yout, J);
 
     try
     {
-        y0_data = N_VGetArrayPointer(y0);
-
         for (i = 0; i < N_; i++)
         {
-            y0_data[i] = y[i];
+            y0_data_[i] = y[i];
         }
 
-        flag = CVodeSetUserData(cvode_mem, aux_data);
+        flag = CVodeReInit(cvode_mem_, t0, y0_);
         // if (flag != CV_SUCCESS){
-        //     Info << "Error CVodeSetUserData" << endl; throw;}
-
-        // Info<<"start time: "<< t0 <<endl;
-        // Info<<"initial data "<< y0_data[0] <<endl;
-
-        flag = CVodeInit(cvode_mem, odeEqs, t0, y0);
-        // if (flag != CV_SUCCESS){
-        //     Info << "Error CVodeInit" << endl; throw;}
-
-        flag = CVodeSVtolerances(cvode_mem, relTol_, absTol_);
-        // if (flag != CV_SUCCESS){
-        //     Info << "Error CVodeSVtolerances" << endl; throw;}
-
-        flag = CVodeSetLinearSolver(cvode_mem, LS, J);
-        // if (flag != CVLS_SUCCESS){
-        //     Info << "Error CVodeSetLinearSolver" << endl; throw;}
-
-        // flag = CVodeSetJacFn(cvode_mem, Jacobian);
-
-        // long int mxsteps;
-        // flag = CVodeSetMaxNumSteps(cvode_mem, mxsteps);
-
-        flag = CVodeSetInitStep(cvode_mem, initialStepSize_);
-        // if (flag != CV_SUCCESS){
-        //     Info << "Error CVodeSetInitStep" << endl; throw;}
-
-        flag = CVodeSetMaxStep(cvode_mem, maxStepSize_);
-        // if (flag != CV_SUCCESS){
-        //     Info << "Error CVodeSetMaxStep" << endl; throw;}
-
-        // flag = CVodeSetConstraints(cvode_mem, constraints_);
-        // if (flag != CV_SUCCESS){
-        //     Info << "Error CVodeSetConstraints" << endl; throw;}
+        //     Info << "Error CVodeReInit" << endl; throw;}
 
         // Info<<"end time: "<< tout <<endl;
-        
-        // The same matrix y0 is used for the output
-        flag = CVode(cvode_mem, tout, yout, &t_reached, CV_NORMAL);
+
+        flag = CVode(cvode_mem_, tout, yout_, &t_reached, CV_NORMAL);
 
         // if (aux_data->cell_id == )
         // {
         //     Info << "flag: "<< flag << endl;
         // }
 
-        yout_data = N_VGetArrayPointer(yout);
-
         // Info<<"return flag: "<< flag <<endl;
-        // Info<<"initial data "<< yout_data[0] <<endl;
 
+        // The same matrix y is used to return the result
         for (i = 0; i < N_; i++)
         {
-            y[i] = yout_data[i];
+            y[i] = yout_data_[i];
         }
     }
     catch(lowMetalConcException)
     {
-        yout_data = N_VGetArrayPointer(yout);
-
         for (i = 0; i < N_; i++)
         {
-            y[i] = yout_data[i];
+            y[i] = yout_data_[i];
         }
     }
-    catch(...)
-    {
-        N_VDestroy(y0);
-        N_VDestroy(yout);
-        CVodeFree(&cvode_mem);
-        SUNMatDestroy(J);
-        SUNLinSolFree(LS);
-        throw;
-    }
+}
 
-    N_VDestroy(y0);
-    N_VDestroy(yout);
-    CVodeFree(&cvode_mem);
-    SUNMatDestroy(J);
-    SUNLinSolFree(LS);
+
+void Foam::odeSolver::updateUserData
+(
+    Foam::label celli,
+    const Foam::solutionNMC& solution,
+    const Foam::populationBalance& pb,
+    const Foam::incompressible::momentumTransportModel& turbulence
+)
+{
+    aux_data_->cell_id = celli;
+    aux_data_->totalNH3 = solution.totalNH3()[celli];
+    aux_data_->totalNa = solution.totalNa()[celli];
+    aux_data_->totalSO4 = solution.totalSO4()[celli];
+    aux_data_->concNH3 = solution.NH3()[celli];
+    aux_data_->concOH = solution.OH()[celli];
+    aux_data_->physChemData_.epsilon =
+        turbulence.epsilon()().internalField()[celli];
 }
 
 
@@ -461,6 +470,22 @@ bool Foam::odeSolver::read()
                     << endl << endl;
             }
         }
+
+        int flag;
+        flag = CVodeSVtolerances(cvode_mem_, relTol_, absTol_);
+        if (flag != CV_SUCCESS){
+            FatalErrorInFunction << "CVodeSVtolerances failed"
+                << endl << exit(FatalError);}
+
+        flag = CVodeSetInitStep(cvode_mem_, initialStepSize_);
+        if (flag != CV_SUCCESS){
+            FatalErrorInFunction << "CVodeSetInitStep failed"
+                << endl << exit(FatalError);}
+
+        flag = CVodeSetMaxStep(cvode_mem_, maxStepSize_);
+        if (flag != CV_SUCCESS){
+            FatalErrorInFunction << "CVodeSetMaxStep failed"
+                << endl << exit(FatalError);}
 
         return readOK;
     }

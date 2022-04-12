@@ -26,13 +26,8 @@ forAll(activeCellsField, celli)
         if (cationTotalConc > effectiveConc)
         {
             // cout<<"cell id: "<<celli<<'\n';
-            UserData *aux_data = new UserData
-            (
-                celli,
-                solution_nmc,
-                pb_ref,
-                turb_ref
-            );
+
+            ode.updateUserData(celli, solution_nmc, pb_ref, turb_ref);
 
             for(i=0; i<nMoments; i++)
             {
@@ -41,7 +36,7 @@ forAll(activeCellsField, celli)
 
             try
             {
-                ode.solve(y, 0.0, odeEndTime, aux_data);
+                ode.solve(y, 0.0, odeEndTime);
 
                 for(i = 0; i < nMetals; i++)
                 {
@@ -55,12 +50,9 @@ forAll(activeCellsField, celli)
             }
             catch(...)
             {
-                delete aux_data;
                 delete[] y;
                 throw;
             }
-
-            delete aux_data;
         }
 
         delete[] y;

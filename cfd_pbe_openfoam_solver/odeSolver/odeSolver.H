@@ -24,6 +24,7 @@ and the OpenFOAM Foundation.
 #define odeSolver_H
 
 #include "IOdictionary.H"
+#include "kinematicMomentumTransportModel.H"
 
 #include "cvode.h"
 #include "nvector_serial.h"
@@ -56,17 +57,39 @@ class odeSolver
         //- relative tolerance
         realtype relTol_;
 
-        //- absolute tolerances
-        N_Vector absTol_;
-
         //- initial step size
         realtype initialStepSize_;
 
         //- initial step size
         realtype maxStepSize_;
 
+        //- initial condition
+        N_Vector y0_;
+
+        //- result
+        N_Vector yout_;
+
+        //- absolute tolerances
+        N_Vector absTol_;
+
         //- CVODE constraint N_Vector for variables
         N_Vector constraints_;
+
+        //- Jacobian matrix
+        SUNMatrix J_;
+
+        //- linear solver
+        SUNLinearSolver LS_;
+
+        //- pointer to the cvode solver
+        void *cvode_mem_;
+
+        //- user data (the allocated memory is freed in destructor)
+        UserData *aux_data_;
+
+        //- pointers to data of y0_ and yout_
+        //- No need to be destroyed explicitly in destructor
+        realtype *y0_data_, *yout_data_;
 
         //- Exception to terminate the integration
         //  when metal concentration is low
@@ -83,7 +106,7 @@ public:
         (
             const fvMesh& mesh,
             const populationBalance& pb,
-            const solutionNMC& solution
+            solutionNMC& solution
         );
 
 
@@ -96,8 +119,16 @@ public:
         // Public member functions
 
             //- Initialize and run the ODE solver 
-            void solve(
-                realtype *y, realtype t0, realtype tout, UserData *aux_data);
+            void solve(realtype *y, realtype t0, realtype tout);
+
+            //- Update the user data before starting integration
+            void updateUserData
+            (
+                label,
+                const solutionNMC&,
+                const populationBalance&,
+                const incompressible::momentumTransportModel&
+            );
 
             //- Read ode properties dictionary
             bool read();

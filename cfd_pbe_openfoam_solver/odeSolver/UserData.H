@@ -36,7 +36,7 @@ namespace Foam
 
 struct PhysChemData
 {
-    const scalar epsilon;
+    scalar epsilon;
     const scalar nu;
     scalar growthRate;
 };
@@ -88,9 +88,10 @@ struct UserData{
     const aggregationList& aggregation_;
     const breakageList& breakage_;
     const inversionAlgorithm& invAlgm_;
-    const label cell_id, nMetals, nMoments;
-    const realtype totalNH3, totalNa, totalSO4, effectiveConc, kv, crystalRho,
-        crystalMW;
+    label cell_id;
+    const label nMetals, nMoments;
+    realtype totalNH3, totalNa, totalSO4;
+    const realtype effectiveConc, kv, crystalRho, crystalMW;
     realtype superSat, concNH3, concOH;
     realtype metalCationConcs[3];
 
