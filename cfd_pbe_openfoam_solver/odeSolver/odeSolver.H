@@ -95,6 +95,9 @@ class odeSolver
         //  when metal concentration is low
         struct lowMetalConcException {};
 
+        //- Exception to prevent simulation crash
+        struct invalidConcException {};
+
     // Private member functions
 
 public:

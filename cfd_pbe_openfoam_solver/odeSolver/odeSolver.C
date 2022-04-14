@@ -78,6 +78,10 @@ int Foam::odeSolver::odeEqs
     {
         throw lowMetalConcException{};
     }
+    else if (cationTotalConc > 2*aux_data->totalSO4)
+    {
+        throw invalidConcException{};
+    }
 
     List<scalar> moments(nMoments);
 
@@ -310,6 +314,11 @@ Foam::odeSolver::odeSolver
         FatalErrorInFunction << "CVodeInit failed"
             << endl << exit(FatalError);}
 
+    flag = CVodeSetMaxOrd(cvode_mem_, 2);
+    if (flag != CV_SUCCESS){
+        FatalErrorInFunction << "CVodeSetMaxOrd failed"
+            << endl << exit(FatalError);}
+
     flag = CVodeSVtolerances(cvode_mem_, relTol_, absTol_);
     if (flag != CV_SUCCESS){
         FatalErrorInFunction << "CVodeSVtolerances failed"
@@ -328,6 +337,11 @@ Foam::odeSolver::odeSolver
     flag = CVodeSetMaxStep(cvode_mem_, maxStepSize_);
     if (flag != CV_SUCCESS){
         FatalErrorInFunction << "CVodeSetMaxStep failed"
+            << endl << exit(FatalError);}
+
+    flag = CVodeSetMaxNumSteps(cvode_mem_, 1000);
+    if (flag != CV_SUCCESS){
+        FatalErrorInFunction << "CVodeSetMaxNumSteps failed"
             << endl << exit(FatalError);}
 
     // flag = CVodeSetConstraints(cvode_mem_, constraints_);
@@ -400,6 +414,8 @@ void Foam::odeSolver::solve(realtype *y, realtype t0, realtype tout)
             y[i] = yout_data_[i];
         }
     }
+    catch(invalidConcException)
+    {}
 }
 
 
