@@ -57,7 +57,7 @@ def initializer(caseDir):
 
     ###########################################################################
     # volumes of each compartment
-    volumes = np.loadtxt('react_zone_ave.txt', skiprows=2, usecols=(6))
+    volumes = np.loadtxt('react_zone_ave.txt', skiprows=2, usecols=(3))
 
     # the origin and destination ID of fluxes excluding inlets
     flux_IDs = np.loadtxt(
@@ -179,7 +179,6 @@ def initializer(caseDir):
                        'maxIter')
     tol = strToFloat(read_key(nRSolverDict, 'tol', 'newtonRaphson'), 'tol')
     nRSolverOpts = {"maxIter": maxIter, "tol": tol}
-
 
     ###########################################################################
     # Read number of nodes

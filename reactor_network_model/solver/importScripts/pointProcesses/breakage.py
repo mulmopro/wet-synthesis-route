@@ -65,7 +65,7 @@ class PowerLaw(Breakage):
 
     def breakageRate(self, superSat, L, epsilon):
 
-        if superSat > 1.0 and L > 0.0:
+        if L > 0.0:
 
             kolmogorov_length = ((self.nu**3) / epsilon)**0.25
             kolmogorov_time = (self.nu / epsilon)**0.5
