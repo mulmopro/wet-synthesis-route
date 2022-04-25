@@ -38,7 +38,7 @@ int Foam::inversionAlgorithm::nodeReduction
     int n
 ) const
 {
-    constexpr scalar smallZeta = 1e-20;
+    constexpr scalar smallZeta = 1e-12;
 
     if (zeta[0] <= smallZeta)
     {

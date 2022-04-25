@@ -34,7 +34,7 @@ void Foam::solutionNMC::equilibriaEqs
 (
     const List<scalar>& pConcs, const List<scalar>& totalConcs,
     scalar cationTotalConc, double* negf, double* J
-)
+) const
 {
     label i, j;
     label countComplex = 0;
@@ -391,8 +391,8 @@ Foam::solutionNMC::~solutionNMC()
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void Foam::solutionNMC::update(const realtype *y, UserData *aux_data,
-    realtype *cationConcRatios)
+void Foam::solutionNMC::solve(const realtype *y, UserData *aux_data,
+    realtype *cationConcRatios) const
 {
     label nJ = nComps_*nComps_;
 

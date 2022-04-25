@@ -100,7 +100,7 @@ int Foam::odeSolver::odeEqs
         moments[i] = moment_i;
     }
 
-    aux_data->solution_.update(y_data, aux_data, cationConcRatios);
+    aux_data->solution_.solve(y_data, aux_data, cationConcRatios);
 
     superSat = aux_data->superSat;
 
@@ -199,8 +199,9 @@ int Foam::odeSolver::Jacobian(realtype t, N_Vector y, N_Vector fy, SUNMatrix J,
 Foam::odeSolver::odeSolver
 (
     const fvMesh& mesh,
+    const incompressible::momentumTransportModel& turbulence,
     const populationBalance& pb,
-    solutionNMC& solution
+    const solutionNMC& solution
 )
 :
     IOdictionary
@@ -214,6 +215,12 @@ Foam::odeSolver::odeSolver
             IOobject::NO_WRITE
         )
     ),
+
+    turbulence_(turbulence),
+
+    pb_(pb),
+
+    solution_(solution),
 
     N_(solution.nMetals() + pb.numOfMoments()),
 
@@ -300,7 +307,7 @@ Foam::odeSolver::odeSolver
     cvode_mem_ = CVodeCreate(CV_BDF);
 
     // use the first 
-    aux_data_ = new UserData(0, solution, pb, pb.turbulence());
+    aux_data_ = new UserData(0, solution_, pb_, turbulence_);
 
     int flag;
     flag = CVodeSetUserData(cvode_mem_, aux_data_);
@@ -314,10 +321,10 @@ Foam::odeSolver::odeSolver
         FatalErrorInFunction << "CVodeInit failed"
             << endl << exit(FatalError);}
 
-    flag = CVodeSetMaxOrd(cvode_mem_, 2);
-    if (flag != CV_SUCCESS){
-        FatalErrorInFunction << "CVodeSetMaxOrd failed"
-            << endl << exit(FatalError);}
+    // flag = CVodeSetMaxOrd(cvode_mem_, 2);
+    // if (flag != CV_SUCCESS){
+    //     FatalErrorInFunction << "CVodeSetMaxOrd failed"
+    //         << endl << exit(FatalError);}
 
     flag = CVodeSVtolerances(cvode_mem_, relTol_, absTol_);
     if (flag != CV_SUCCESS){
@@ -339,7 +346,7 @@ Foam::odeSolver::odeSolver
         FatalErrorInFunction << "CVodeSetMaxStep failed"
             << endl << exit(FatalError);}
 
-    flag = CVodeSetMaxNumSteps(cvode_mem_, 1000);
+    flag = CVodeSetMaxNumSteps(cvode_mem_, 2000);
     if (flag != CV_SUCCESS){
         FatalErrorInFunction << "CVodeSetMaxNumSteps failed"
             << endl << exit(FatalError);}
@@ -419,22 +426,24 @@ void Foam::odeSolver::solve(realtype *y, realtype t0, realtype tout)
 }
 
 
-void Foam::odeSolver::updateUserData
-(
-    Foam::label celli,
-    const Foam::solutionNMC& solution,
-    const Foam::populationBalance& pb,
-    const Foam::incompressible::momentumTransportModel& turbulence
-)
+void Foam::odeSolver::updateUserData(Foam::label celli)
 {
     aux_data_->cell_id = celli;
-    aux_data_->totalNH3 = solution.totalNH3()[celli];
-    aux_data_->totalNa = solution.totalNa()[celli];
-    aux_data_->totalSO4 = solution.totalSO4()[celli];
-    aux_data_->concNH3 = solution.NH3()[celli];
-    aux_data_->concOH = solution.OH()[celli];
+    aux_data_->totalNH3 = solution_.totalNH3()[celli];
+    aux_data_->totalNa = solution_.totalNa()[celli];
+    aux_data_->totalSO4 = solution_.totalSO4()[celli];
+    aux_data_->concNH3 = solution_.NH3()[celli];
+    aux_data_->concOH = solution_.OH()[celli];
     aux_data_->physChemData_.epsilon =
-        turbulence.epsilon()().internalField()[celli];
+        turbulence_.epsilon()().internalField()[celli];
+
+    aux_data_->physChemData_.nu = turbulence_.nu()().internalField()[celli];
+
+    for(int i=0; i<solution_.nMetals(); i++)
+    {
+        aux_data_->metalCationConcs[i] =
+            solution_.metalCationConcs()[i][celli];
+    }
 }
 
 

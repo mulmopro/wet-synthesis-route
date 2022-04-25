@@ -58,8 +58,10 @@ class bromleyActivityCoeff
     List<scalar> z_a_;
 
     //- Calculate activity for a cation-OH pair
-    scalar pure_pair_activity_coeff(
-        label id_cation, label id_anion, scalar z_c, scalar z_a, scalar I_s);
+    scalar pure_pair_activity_coeff
+    (
+        label id_cation, label id_anion, scalar z_c, scalar z_a, scalar I_s
+    ) const;
 
     
 public:
@@ -86,11 +88,11 @@ public:
 
         //- Calculate ionic strength
         virtual scalar ionic_strength(
-            const List<scalar>&, const List<scalar>&);
+            const List<scalar>&, const List<scalar>&) const;
 
         //- Calculate activity for a cation-OH pair
         virtual scalar pair_activity_coeff(
-            label, const List<scalar>&, const List<scalar>&, scalar);
+            label, const List<scalar>&, const List<scalar>&, scalar) const;
 
 };
 

@@ -60,7 +60,7 @@ Foam::scalar Foam::activityCoeffModels::idealActivityCoeff::ionic_strength
 (
     const Foam::List<Foam::scalar>& cationMolalConc,
     const Foam::List<Foam::scalar>& anionMolalConc
-)
+) const
 {
     return SMALL;
 }
@@ -72,7 +72,7 @@ Foam::scalar Foam::activityCoeffModels::idealActivityCoeff::pair_activity_coeff
     const Foam::List<Foam::scalar>& cationMolalConc,
     const Foam::List<Foam::scalar>& anionMolalConc,
     Foam::scalar
-)
+) const
 {
     return 1.0;
 }

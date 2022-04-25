@@ -295,7 +295,7 @@ void Foam::populationBalances::constantVelocity::correct()
     {
         volScalarField& M = moments_[momenti];
 
-        // M.correctBoundaryConditions();
+        M.correctBoundaryConditions();
 
         if (writeSummary)
         {
@@ -306,8 +306,8 @@ void Foam::populationBalances::constantVelocity::correct()
                 << endl;
         }
 
-        M.max(0);
-        M.correctBoundaryConditions();
+        // M.max(0);
+        // M.correctBoundaryConditions();
     }
 }
 

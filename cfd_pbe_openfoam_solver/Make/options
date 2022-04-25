@@ -28,4 +28,5 @@ EXE_LIBS = \
     -lpisoPopulationBalancePrecNMC \
     -lsundials_cvode \
     -lsundials_nvecserial \
-    -lsundials_sunlinsollapackdense
+    -lsundials_sunlinsollapackdense \
+	-lsundials_sunmatrixdense

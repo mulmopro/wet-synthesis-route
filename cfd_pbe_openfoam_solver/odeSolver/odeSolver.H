@@ -51,6 +51,15 @@ class odeSolver
 
     // Private data
 
+        //- Reference to the turbulence
+        const incompressible::momentumTransportModel& turbulence_;
+
+        //- Reference to the population balance
+        const populationBalance& pb_;
+
+        //- Reference to the solution
+        const solutionNMC& solution_;
+
         //- problem size 
         sunindextype N_;
 
@@ -108,8 +117,9 @@ public:
         odeSolver
         (
             const fvMesh& mesh,
+            const incompressible::momentumTransportModel& turbulence,
             const populationBalance& pb,
-            solutionNMC& solution
+            const solutionNMC& solution
         );
 
 
@@ -125,13 +135,7 @@ public:
             void solve(realtype *y, realtype t0, realtype tout);
 
             //- Update the user data before starting integration
-            void updateUserData
-            (
-                label,
-                const solutionNMC&,
-                const populationBalance&,
-                const incompressible::momentumTransportModel&
-            );
+            void updateUserData(label);
 
             //- Read ode properties dictionary
             bool read();

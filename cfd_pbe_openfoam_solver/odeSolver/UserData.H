@@ -37,7 +37,7 @@ namespace Foam
 struct PhysChemData
 {
     scalar epsilon;
-    const scalar nu;
+    scalar nu;
     scalar growthRate;
 };
 
@@ -57,7 +57,7 @@ struct UserData{
     UserData
     (
         label celli,
-        solutionNMC& solution,
+        const solutionNMC& solution,
         const populationBalance& pb,
         const incompressible::momentumTransportModel& turbulence
     ): solution_(solution), growth_(pb.growth()), nucRate_(pb.nucleationRate()),
@@ -81,7 +81,7 @@ struct UserData{
         }
     }
 
-    solutionNMC& solution_;
+    const solutionNMC& solution_;
     const growthModel& growth_;
     const nucleationRateModel& nucRate_;
     const nucleateSizeModel& nucleateSize_;

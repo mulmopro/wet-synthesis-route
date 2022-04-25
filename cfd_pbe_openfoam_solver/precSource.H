@@ -27,7 +27,7 @@ forAll(activeCellsField, celli)
         {
             // cout<<"cell id: "<<celli<<'\n';
 
-            ode.updateUserData(celli, solution_nmc, pb_ref, turb_ref);
+            ode.updateUserData(celli);
 
             for(i=0; i<nMoments; i++)
             {

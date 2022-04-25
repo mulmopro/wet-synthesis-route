@@ -42,7 +42,7 @@ Foam::scalar
 Foam::activityCoeffModels::bromleyActivityCoeff::pure_pair_activity_coeff
 (
     label id_cation, label id_anion, scalar z_c, scalar z_a, scalar I_s
-)
+) const
 {
     scalar B = B_(id_cation, id_anion);
 
@@ -153,7 +153,7 @@ Foam::scalar Foam::activityCoeffModels::bromleyActivityCoeff::ionic_strength
 (
     const Foam::List<Foam::scalar>& cationMolalConc,
     const Foam::List<Foam::scalar>& anionMolalConc
-)
+) const
 {
     scalar I_s = 0.0;
 
@@ -179,7 +179,7 @@ Foam::scalar Foam::activityCoeffModels::bromleyActivityCoeff
     const Foam::List<Foam::scalar>& cationMolalConc,
     const Foam::List<Foam::scalar>& anionMolalConc,
     Foam::scalar I_s
-)
+) const
 {
     label id_OH = 1;
 

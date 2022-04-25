@@ -53,7 +53,7 @@ autoPtr<populationBalance> pb
 
 populationBalance& pb_ref = pb();
 
-odeSolver ode(mesh, pb_ref, solution_nmc);
+odeSolver ode(mesh, turb_ref, pb_ref, solution_nmc);
 
 PtrList<volScalarField>& moments = pb_ref.moments();
 

@@ -192,7 +192,7 @@ class solutionNMC
 
         //- Calculate the matrices of the chemical equilibria equations
         void equilibriaEqs(const List<scalar>&, const List<scalar>&,
-            scalar, double*, double*);
+            scalar, double*, double*) const;
 
 public:
 
@@ -216,9 +216,11 @@ public:
         //- Find equilibrium concentrations to calculate the supersaturation 
         void update();
 
-        void update(
-            const realtype *y, UserData *aux_data,
-            realtype *cationConcRatios);
+        //- solve quilibrium for a cell
+        void solve
+        (
+            const realtype *y, UserData *aux_data, realtype *cationConcRatios
+        ) const;
 
         //- Correct boundary condition of total concentrations
         void correct();

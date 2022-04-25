@@ -98,11 +98,11 @@ public:
 
         //- Calculate ionic strength (if needed by the selected model)
         virtual scalar ionic_strength(
-            const List<scalar>&, const List<scalar>&) = 0;
+            const List<scalar>&, const List<scalar>&) const = 0;
 
         //- Calculate activity for a cation-OH pair
         virtual scalar pair_activity_coeff(
-            label, const List<scalar>&, const List<scalar>&, scalar) = 0;
+            label, const List<scalar>&, const List<scalar>&, scalar) const = 0;
 
 };
 
