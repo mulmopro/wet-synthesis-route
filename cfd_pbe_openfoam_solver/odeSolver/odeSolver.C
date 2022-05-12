@@ -230,11 +230,20 @@ Foam::odeSolver::odeSolver
 
     maxStepSize_(readScalar(lookup("maxStepSize")))
 {
+    int flag;
+
+    void* comm = NULL;
+    sunctx_ = NULL;
+    flag = SUNContext_Create(comm, &sunctx_);
+    if (flag != CV_SUCCESS){
+        FatalErrorInFunction << "SUNContext_Create failed"
+            << endl << exit(FatalError);}
+
     int i;
     ITstream is = lookup("absTol");
 
     absTol_ = NULL;
-    absTol_ = N_VNew_Serial(N_);
+    absTol_ = N_VNew_Serial(N_, sunctx_);
 
     realtype *absTol_data;
 
@@ -271,15 +280,15 @@ Foam::odeSolver::odeSolver
     }
 
     y0_ = NULL;
-    y0_ = N_VNew_Serial(N_);
+    y0_ = N_VNew_Serial(N_, sunctx_);
     y0_data_ = N_VGetArrayPointer(y0_);
 
     yout_ = NULL;
-    yout_ = N_VNew_Serial(N_);
+    yout_ = N_VNew_Serial(N_, sunctx_);
     yout_data_ = N_VGetArrayPointer(yout_);
 
     constraints_ = NULL;
-    constraints_ = N_VNew_Serial(N_);
+    constraints_ = N_VNew_Serial(N_, sunctx_);
 
     N_VConst(1.0, constraints_);
 
@@ -298,18 +307,17 @@ Foam::odeSolver::odeSolver
     // }
 
     J_ = NULL;
-    J_ = SUNDenseMatrix(N_, N_);
+    J_ = SUNDenseMatrix(N_, N_, sunctx_);
 
     LS_ = NULL;
-    LS_ = SUNLinSol_LapackDense(yout_, J_);
+    LS_ = SUNLinSol_Dense(yout_, J_, sunctx_);
 
     cvode_mem_ = NULL;
-    cvode_mem_ = CVodeCreate(CV_BDF);
+    cvode_mem_ = CVodeCreate(CV_BDF, sunctx_);
 
     // use the first 
     aux_data_ = new UserData(0, solution_, pb_, turbulence_);
 
-    int flag;
     flag = CVodeSetUserData(cvode_mem_, aux_data_);
     if (flag != CV_SUCCESS){
         FatalErrorInFunction << "CVodeSetUserData failed"
@@ -376,12 +384,13 @@ Foam::odeSolver::~odeSolver()
     CVodeFree(&cvode_mem_);
     SUNMatDestroy(J_);
     SUNLinSolFree(LS_);
+    SUNContext_Free(&sunctx_);
 }
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void Foam::odeSolver::solve(realtype *y, realtype t0, realtype tout)
+void Foam::odeSolver::solve(List<realtype>& y, realtype t0, realtype tout)
 {
     int i, flag;
     realtype t_reached;

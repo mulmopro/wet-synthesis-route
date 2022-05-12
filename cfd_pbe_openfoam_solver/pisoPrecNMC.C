@@ -31,6 +31,10 @@ and the OpenFOAM Foundation.
 #include "odeSolver/odeSolver.H"
 #include "odeSolver/UserData.H"
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
@@ -89,10 +93,6 @@ int main(int argc, char *argv[])
         {
             pb->transport_moments();
             solution_nmc.transport_species();
-
-            // update the supersaturation, pH and equilibrium concentrations
-            // after the transport
-            solution_nmc.update();
 
             // Precipitation is included by using the operator-splitting method
             #include "precSource.H"

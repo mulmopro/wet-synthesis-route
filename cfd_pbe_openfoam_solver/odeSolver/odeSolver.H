@@ -28,7 +28,7 @@ and the OpenFOAM Foundation.
 
 #include "cvode.h"
 #include "nvector_serial.h"
-#include "sunlinsol_lapackdense.h"
+#include "sunlinsol_dense.h"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -90,6 +90,9 @@ class odeSolver
         //- linear solver
         SUNLinearSolver LS_;
 
+        //- SUNContext
+        SUNContext sunctx_;
+
         //- pointer to the cvode solver
         void *cvode_mem_;
 
@@ -132,7 +135,7 @@ public:
         // Public member functions
 
             //- Initialize and run the ODE solver 
-            void solve(realtype *y, realtype t0, realtype tout);
+            void solve(List<realtype>& y, realtype t0, realtype tout);
 
             //- Update the user data before starting integration
             void updateUserData(label);

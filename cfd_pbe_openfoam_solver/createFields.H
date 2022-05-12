@@ -53,8 +53,6 @@ autoPtr<populationBalance> pb
 
 populationBalance& pb_ref = pb();
 
-odeSolver ode(mesh, turb_ref, pb_ref, solution_nmc);
-
 PtrList<volScalarField>& moments = pb_ref.moments();
 
 PtrList<volScalarField>& totalMetalConcs = solution_nmc.totalMetalConcs();
@@ -68,6 +66,32 @@ PtrList<volScalarField>& totalMetalConcs = solution_nmc.totalMetalConcs();
 // const DimensionedField<scalar, volMesh>& OH = solution_nmc.OH();
 
 const Field<scalar>& activeCellsField = solution_nmc.activeCellsField();
+
+const label nMetals(solution_nmc.nMetals());
+const label nMoments(pb_ref.numOfMoments());
+const label nY = nMetals + nMoments;
+const label nCells = activeCellsField.size();
+
+label num_threads;
+
+#ifdef _OPENMP
+#pragma omp parallel default(none) shared(num_threads)
+{
+    #pragma omp single
+    {
+        num_threads = omp_get_num_threads();
+    }
+}
+#else
+    num_threads = 1;
+#endif
+
+PtrList<odeSolver> odes(num_threads);
+
+forAll(odes, index)
+{
+    odes.set(index, new odeSolver(mesh, turb_ref, pb_ref, solution_nmc));
+}
 
 #include "createMRF.H"
 #include "createFvOptions.H"

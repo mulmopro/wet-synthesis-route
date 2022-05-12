@@ -1,60 +1,81 @@
-const label nMetals(solution_nmc.nMetals());
-const label nMoments(pb_ref.numOfMoments());
-const label nY = nMetals + nMoments;
-
-const scalar effectiveConc(solution_nmc.effectiveConc());
-
 const realtype odeEndTime(runTime.deltaTValue());
 
-forAll(activeCellsField, celli)
+int error_flag = 0;
+
+#ifdef _OPENMP
+#pragma omp parallel default(none) \
+        shared(nMetals, nMoments, nY, nCells, odeEndTime, activeCellsField, \
+            totalMetalConcs, moments, odes, solution_nmc, error_flag)
 {
-    if (activeCellsField[celli] > 0)
+    odeSolver& ode = odes[omp_get_thread_num()];
+#else
+    odeSolver& ode = odes[0];
+#endif
+
+    int i;
+    bool validTotalConc;
+
+    List<realtype> y(nY);
+
+    #ifdef _OPENMP
+    #pragma omp for schedule(dynamic, 4)
+    #endif
+    for (int celli=0; celli<nCells; celli++)
     {
-        int i;
-        realtype *y = new realtype[nY];
-
-        scalar totalConc;
-        scalar cationTotalConc(0.0);
-        for(i=0; i<nMetals; i++)
+        if (activeCellsField[celli] > 0)
         {
-            totalConc = totalMetalConcs[i][celli];
+            // update the supersaturation, pH and equilibrium concentrations
+            // before integration (if total concentrations are valid)
+            validTotalConc = solution_nmc.update(celli);
 
-            cationTotalConc += totalConc;
-            y[i] = totalConc;
-        }
-
-        if (cationTotalConc > effectiveConc)
-        {
-            // cout<<"cell id: "<<celli<<'\n';
-
-            ode.updateUserData(celli);
-
-            for(i=0; i<nMoments; i++)
+            if (validTotalConc)
             {
-                y[i + nMetals] = moments[i][celli];
-            }
+                // cout<<"cell id: "<<celli<<'\n';
 
-            try
-            {
-                ode.solve(y, 0.0, odeEndTime);
+                ode.updateUserData(celli);
 
-                for(i = 0; i < nMetals; i++)
+                for(i=0; i<nMetals; i++)
                 {
-                    totalMetalConcs[i][celli] = y[i];
+                    y[i] = totalMetalConcs[i][celli];
                 }
 
-                for(i = 0; i < nMoments; i++)
+                for(i=0; i<nMoments; i++)
                 {
-                    moments[i][celli] = y[i + nMetals];
+                    y[i + nMetals] = moments[i][celli];
+                }
+
+                try
+                {
+                    ode.solve(y, 0.0, odeEndTime);
+
+                    // No data race, but risk of false sharing
+                    for(i = 0; i < nMetals; i++)
+                    {
+                        totalMetalConcs[i][celli] = y[i];
+                    }
+
+                    // No data race, but risk of false sharing
+                    for(i = 0; i < nMoments; i++)
+                    {
+                        moments[i][celli] = y[i + nMetals];
+                    }
+                }
+                catch(...)
+                {
+                    #ifdef _OPENMP
+                    #pragma omp atomic
+                    #endif
+                        error_flag++;
                 }
             }
-            catch(...)
-            {
-                delete[] y;
-                throw;
-            }
         }
-
-        delete[] y;
     }
+
+#ifdef _OPENMP
+}
+#endif
+
+if (error_flag > 0)
+{
+    throw;
 }

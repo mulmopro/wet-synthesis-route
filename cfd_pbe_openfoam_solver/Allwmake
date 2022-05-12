@@ -1,22 +1,28 @@
 #!/bin/sh
 cd ${0%/*} || exit 1    # Run from this directory
 
+export WM_DIR_MOD="$(pwd)/wmake"
+export GENERAL_RULES_MOD="$(pwd)/wmake/rules/General"
+export OPENMP_FLAG=-fopenmp  # for Intel compilers use -qopenmp
+
 # Parse arguments for library compilation
-. $WM_PROJECT_DIR/wmake/scripts/AllwmakeParseArguments
+. "$WM_DIR_MOD/scripts/AllwmakeParseArguments"
 
 cd lapack/
 make
 mv liblapack.so $FOAM_USER_LIBBIN
 cd ..
 
-export SUNDIAL_SRC=/sundials/instdir/include
-export SUNDIAL_LIB=/sundials/instdir/lib
+# ROOT_DIR=$HOME
+
+export SUNDIALS_SRC=$ROOT_DIR/sundials/instdir/include
+export SUNDIALS_LIB=$ROOT_DIR/sundials/instdir/lib
 
 wmakeLnInclude solutionNMC
 wmakeLnInclude populationBalance
-wmake $targetType solutionNMC
-wmake $targetType populationBalance
-wmake $targetType
+"$WM_DIR_MOD/wmake" $targetType solutionNMC
+"$WM_DIR_MOD/wmake" $targetType populationBalance
+"$WM_DIR_MOD/wmake" $targetType
 
 #------------------------------------------------------------------------------
 

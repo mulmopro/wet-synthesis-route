@@ -7,16 +7,16 @@ EXE_INC = \
     -I$(LIB_SRC)/sampling/lnInclude \
     -IsolutionNMC/lnInclude \
     -IpopulationBalance/lnInclude \
-    -I$(SUNDIAL_SRC) \
-    -I$(SUNDIAL_SRC)/sundials \
-    -I$(SUNDIAL_SRC)/cvode \
-    -I$(SUNDIAL_SRC)/nvector \
-    -I$(SUNDIAL_SRC)/sunlinsol \
+    -I$(SUNDIALS_SRC) \
+    -I$(SUNDIALS_SRC)/sundials \
+    -I$(SUNDIALS_SRC)/cvode \
+    -I$(SUNDIALS_SRC)/nvector \
+    -I$(SUNDIALS_SRC)/sunlinsol \
     -IodeSolver
 
 EXE_LIBS = \
     -L$(FOAM_USER_LIBBIN) \
-    -L$(SUNDIAL_LIB) \
+    -L$(SUNDIALS_LIB) \
     -lmomentumTransportModels \
     -lincompressibleMomentumTransportModels \
     -lincompressibleTransportModels \
@@ -28,5 +28,5 @@ EXE_LIBS = \
     -lpisoPopulationBalancePrecNMC \
     -lsundials_cvode \
     -lsundials_nvecserial \
-    -lsundials_sunlinsollapackdense \
-	-lsundials_sunmatrixdense
+    -lsundials_sunlinsoldense \
+    -lsundials_sunmatrixdense

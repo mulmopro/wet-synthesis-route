@@ -214,7 +214,7 @@ public:
     // Member Functions
 
         //- Find equilibrium concentrations to calculate the supersaturation 
-        void update();
+        bool update(label);
 
         //- solve quilibrium for a cell
         void solve
