@@ -99,6 +99,11 @@ int main(int argc, char *argv[])
 
             solution_nmc.correct();
             pb_ref.correct();
+
+            if (runTime.writeTime())
+            {
+                pb_ref.update_quadrature();
+            }
         }
 
         runTime.write();

@@ -119,6 +119,9 @@ public:
 
         //- Correct boundary condition of moments
         virtual void correct();
+
+        //- update nodes and weights of the quadrature
+        virtual void update_quadrature();
         
         // Return true if PBM uses quasi-high-order scheme
         virtual bool highOrderScheme() const = 0;

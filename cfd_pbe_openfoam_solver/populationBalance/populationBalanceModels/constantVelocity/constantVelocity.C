@@ -312,6 +312,39 @@ void Foam::populationBalances::constantVelocity::correct()
 }
 
 
+void Foam::populationBalances::constantVelocity::update_quadrature()
+{
+    Field<scalar> sourceCorrCoeff;
+
+    if (numOfMoments_ > 2)
+    {
+        sourceCorrCoeff = pos(
+            moments_[3].primitiveField()*kv_ - alphaMin_.value());
+
+        forAll(moments_, momenti)
+        {
+            if (momenti != 3)
+            {
+                sourceCorrCoeff *= pos(moments_[momenti].primitiveField());
+            }
+        }
+    }
+    else
+    {
+        sourceCorrCoeff =
+            pos(moments_[0].primitiveField())
+          * pos(moments_[1].primitiveField());
+    }
+
+    Info<< "Calculating nodes and weights in "
+        << gSum(sourceCorrCoeff)
+        << " number of cells"<< endl;
+
+    // Finding nodes and weights for tagged cells
+    quadrature_->nodesAndWeights(sourceCorrCoeff);
+}
+
+
 bool Foam::populationBalances::constantVelocity::read()
 {
     if (regIOobject::read())

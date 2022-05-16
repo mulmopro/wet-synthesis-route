@@ -75,6 +75,10 @@ void Foam::populationBalance::correct()
 {}
 
 
+void Foam::populationBalance::update_quadrature()
+{}
+
+
 void Foam::populationBalance::momDeltaT(scalar& maxDeltaT) const
 {}
 

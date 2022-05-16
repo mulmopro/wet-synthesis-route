@@ -144,6 +144,9 @@ public:
         //- Solve for the PBE
         virtual void correct();
 
+        //- update nodes and weights of the quadrature
+        virtual void update_quadrature();
+
         //- Read pbProperties dictionary
         virtual bool read();
 
