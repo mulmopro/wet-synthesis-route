@@ -28,7 +28,7 @@ and the OpenFOAM Foundation.
 
 #include "solutionNMC.H"
 #include "populationBalance.H"
-#include "odeSolver/odeSolver.H"
+#include "odeSolver/odeSolverList.H"
 #include "odeSolver/UserData.H"
 
 #ifdef _OPENMP

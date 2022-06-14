@@ -32,6 +32,8 @@ and the OpenFOAM Foundation.
 #include "breakageList.H"
 #include "inversionAlgorithm.H"
 
+#include "dictionary.H"
+
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
 int Foam::odeSolver::odeEqs
@@ -201,21 +203,10 @@ Foam::odeSolver::odeSolver
     const fvMesh& mesh,
     const incompressible::momentumTransportModel& turbulence,
     const populationBalance& pb,
-    const solutionNMC& solution
+    const solutionNMC& solution,
+    const dictionary& dict
 )
 :
-    IOdictionary
-    (
-        IOobject
-        (
-            "odeSolver",
-            mesh.time().constant(),
-            mesh,
-            IOobject::MUST_READ_IF_MODIFIED,
-            IOobject::NO_WRITE
-        )
-    ),
-
     turbulence_(turbulence),
 
     pb_(pb),
@@ -224,11 +215,11 @@ Foam::odeSolver::odeSolver
 
     N_(solution.nMetals() + pb.numOfMoments()),
 
-    relTol_(readScalar(lookup("relTol"))),
+    relTol_(readScalar(dict.lookup("relTol"))),
 
-    initialStepSize_(readScalar(lookup("initialStepSize"))),
+    initialStepSize_(readScalar(dict.lookup("initialStepSize"))),
 
-    maxStepSize_(readScalar(lookup("maxStepSize")))
+    maxStepSize_(readScalar(dict.lookup("maxStepSize")))
 {
     int flag;
 
@@ -240,7 +231,7 @@ Foam::odeSolver::odeSolver
             << endl << exit(FatalError);}
 
     int i;
-    ITstream is = lookup("absTol");
+    ITstream is = dict.lookup("absTol");
 
     absTol_ = NULL;
     absTol_ = N_VNew_Serial(N_, sunctx_);
@@ -456,77 +447,70 @@ void Foam::odeSolver::updateUserData(Foam::label celli)
 }
 
 
-bool Foam::odeSolver::read()
+bool Foam::odeSolver::read(const dictionary& dict)
 {
-    if (regIOobject::read())
+
+    dict.lookup("initialStepSize") >> initialStepSize_;
+
+    dict.lookup("maxStepSize") >> maxStepSize_;
+
+    dict.lookup("relTol") >> relTol_;
+
+    int i;
+    ITstream is(dict.lookup("absTol"));
+
+    realtype *absTol_data;
+
+    absTol_data = N_VGetArrayPointer(absTol_);
+
+    if (is.nRemainingTokens() == is.tokenIndex() + 1)
     {
-        bool readOK = true;
+        scalar absTolScalar(readScalar(is));
 
-        this->lookup("initialStepSize") >> initialStepSize_;
-
-        this->lookup("maxStepSize") >> maxStepSize_;
-
-        this->lookup("relTol") >> relTol_;
-
-        int i;
-        ITstream is(this->lookup("absTol"));
-
-        realtype *absTol_data;
-
-        absTol_data = N_VGetArrayPointer(absTol_);
-
-        if (is.nRemainingTokens() == is.tokenIndex() + 1)
+        for (i = 0; i < N_; i++)
         {
-            scalar absTolScalar(readScalar(is));
+            absTol_data[i] = absTolScalar;
+        }
+    }
+    else
+    {
+        List<scalar> absTolList(is);
 
+        if (absTolList.size() == N_)
+        {
             for (i = 0; i < N_; i++)
             {
-                absTol_data[i] = absTolScalar;
+                absTol_data[i] = absTolList[i];
             }
         }
         else
         {
-            List<scalar> absTolList(is);
-
-            if (absTolList.size() == N_)
-            {
-                for (i = 0; i < N_; i++)
-                {
-                    absTol_data[i] = absTolList[i];
-                }
-            }
-            else
-            {
-                WarningInFunction
-                    << "Updating absolute tolerances failed!" << endl
-                    << "Number of absolute tolerances should be " << N_
-                    << endl << absTolList.size() << " are specified"
-                    << endl << endl;
-            }
+            WarningInFunction
+                << "Updating absolute tolerances failed!" << endl
+                << "Number of absolute tolerances should be " << N_
+                << endl << absTolList.size() << " are specified"
+                << endl << endl;
         }
-
-        int flag;
-        flag = CVodeSVtolerances(cvode_mem_, relTol_, absTol_);
-        if (flag != CV_SUCCESS){
-            FatalErrorInFunction << "CVodeSVtolerances failed"
-                << endl << exit(FatalError);}
-
-        flag = CVodeSetInitStep(cvode_mem_, initialStepSize_);
-        if (flag != CV_SUCCESS){
-            FatalErrorInFunction << "CVodeSetInitStep failed"
-                << endl << exit(FatalError);}
-
-        flag = CVodeSetMaxStep(cvode_mem_, maxStepSize_);
-        if (flag != CV_SUCCESS){
-            FatalErrorInFunction << "CVodeSetMaxStep failed"
-                << endl << exit(FatalError);}
-
-        return readOK;
     }
-    else
-    {
-        return false;
-    }
+
+    int flag;
+    flag = CVodeSVtolerances(cvode_mem_, relTol_, absTol_);
+    if (flag != CV_SUCCESS){
+        FatalErrorInFunction << "CVodeSVtolerances failed"
+            << endl << exit(FatalError);}
+
+    flag = CVodeSetInitStep(cvode_mem_, initialStepSize_);
+    if (flag != CV_SUCCESS){
+        FatalErrorInFunction << "CVodeSetInitStep failed"
+            << endl << exit(FatalError);}
+
+    flag = CVodeSetMaxStep(cvode_mem_, maxStepSize_);
+    if (flag != CV_SUCCESS){
+        FatalErrorInFunction << "CVodeSetMaxStep failed"
+            << endl << exit(FatalError);}
+
+    return true;
+
 }
 
 

@@ -86,12 +86,7 @@ label num_threads;
     num_threads = 1;
 #endif
 
-PtrList<odeSolver> odes(num_threads);
-
-forAll(odes, index)
-{
-    odes.set(index, new odeSolver(mesh, turb_ref, pb_ref, solution_nmc));
-}
+odeSolverList odes(mesh, turb_ref, pb_ref, solution_nmc, num_threads);
 
 #include "createMRF.H"
 #include "createFvOptions.H"

@@ -23,7 +23,6 @@ and the OpenFOAM Foundation.
 #ifndef odeSolver_H
 #define odeSolver_H
 
-#include "IOdictionary.H"
 #include "kinematicMomentumTransportModel.H"
 
 #include "cvode.h"
@@ -38,6 +37,7 @@ namespace Foam
 class fvMesh;
 class solutionNMC;
 class populationBalance;
+class dictionary;
 struct UserData;
 
 /*---------------------------------------------------------------------------*\
@@ -45,8 +45,6 @@ struct UserData;
 \*---------------------------------------------------------------------------*/
 
 class odeSolver
-:
-    public IOdictionary
 {
 
     // Private data
@@ -122,7 +120,8 @@ public:
             const fvMesh& mesh,
             const incompressible::momentumTransportModel& turbulence,
             const populationBalance& pb,
-            const solutionNMC& solution
+            const solutionNMC& solution,
+            const dictionary& dict
         );
 
 
@@ -141,7 +140,7 @@ public:
             void updateUserData(label);
 
             //- Read ode properties dictionary
-            bool read();
+            bool read(const dictionary& dict);
 
         // Static member functions
 
