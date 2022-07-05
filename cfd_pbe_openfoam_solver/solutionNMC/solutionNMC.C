@@ -399,7 +399,7 @@ void Foam::solutionNMC::solve(const realtype *y, UserData *aux_data,
     double negf[nComps_];
     double J[nJ];
 
-    label i, j;
+    label i, j, k;
     int n = nComps_, nrhs = 1, lda = nComps_, ldb = nComps_, info;
     int ipiv[nComps_];
 
@@ -476,8 +476,61 @@ void Foam::solutionNMC::solve(const realtype *y, UserData *aux_data,
         totalConcs[indexNa_] = totalConc_Na;
         totalConcs[indexSO4_] = totalConc_SO4;
 
-        for(i=0; i<maxIter_; i++)
+        bool reset_guess = false;
+        for (i=0; i<maxIter_; i++)
         {
+            for (k=0; k<nComps_; k++)
+            {
+                if (pConcs[k] > 20 || pConcs[k] < -2)
+                {
+                    reset_guess = true;
+                }
+            }
+
+            if (reset_guess)
+            {
+                reset_guess = false;
+
+                if (totalConc_NH3 > 10*cationTotalConc)
+                {
+                    for (k=0; k<nMetals_; k++)
+                    {
+                        pConcs[k] = -1.0*Foam::log10(totalConcs[k]/100);
+                    }
+
+                    pConcs[indexNH3_] = -1.0*Foam::log10(
+                        totalConc_NH3 - cationTotalConc);
+                }
+                else if (totalConc_NH3 > cationTotalConc)
+                {
+                    for (k=0; k<nMetals_; k++)
+                    {
+                        pConcs[k] = -1.0*Foam::log10(totalConcs[k]/10);
+                    }
+
+                    pConcs[indexNH3_] = -1.0*Foam::log10(
+                        totalConc_NH3 - cationTotalConc / 2.0);
+                }
+                else
+                {
+                    for (k=0; k<nMetals_; k++)
+                    {
+                        pConcs[k] = -1.0*Foam::log10(totalConcs[k]);
+                    }
+
+                    pConcs[indexNH3_] = -1.0*Foam::log10(totalConc_NH3);
+                }
+
+                conc_OH = totalConc_Na + 2*(cationTotalConc - totalConc_SO4);
+                if (conc_OH > 1e-7)
+                {
+                    pConcs[indexOH_] = -1.0*Foam::log10(conc_OH);
+                }
+                else
+                {
+                    pConcs[indexOH_] = -1.0*Foam::log10(0.0001);
+                }
+            }
 
             equilibriaEqs(pConcs, totalConcs, cationTotalConc, negf, J);
 
