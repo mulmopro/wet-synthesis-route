@@ -47,3 +47,71 @@ class symmetricFragmentation(FragmentDist):
             return (2**(1.0 - k/3.0)) * (L**k)
 
         return 0.0
+
+
+class uniformFragmentation(FragmentDist):
+
+    def __init__(self, dict):
+
+        super(uniformFragmentation, self).__init__()
+
+    def fragment_prob(self, L, k):
+
+        if L > 0.0:
+
+            return (6.0 / (k + 3.0)) * (L**k)
+
+        return 0.0
+
+
+class parabolicFragmentation(FragmentDist):
+
+    paramList = []
+
+    def __init__(self, dict):
+        self.C = init_run.strToFloat(
+            init_run.read_key(dict, 'C', 'fragmentDistribution'), 'C')
+
+        super(parabolicFragmentation, self).__init__()
+
+    def fragment_prob(self, L, k):
+
+        if L > 0.0:
+
+            return (L**k) * (
+                3 * self.C / (k + 3.0) +
+                (1.0 - self.C/2.0) * 18 * (6.0 - k) /
+                ((k + 9.0)*(k + 6.0)*(k + 3.0)))
+
+        return 0.0
+
+
+class Laakkonen(FragmentDist):
+
+    def __init__(self, dict):
+
+        super(Laakkonen, self).__init__()
+
+    def fragment_prob(self, L, k):
+
+        if L > 0.0:
+
+            return (L**k)*(3240.0/((k + 9.0)*(k + 12.0)*(k + 15.0)))
+
+        return 0.0
+
+
+class Erosion(FragmentDist):
+
+    def __init__(self, dict):
+
+        super(Erosion, self).__init__()
+
+    def fragment_prob(self, L, k):
+
+        if L > 0.0:
+
+            return 1.0 + (L**3 - 1.0)**(k/3.0)
+
+        return 0.0
+
