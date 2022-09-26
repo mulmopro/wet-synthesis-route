@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with WetSynthRoute.  If not, see <https://www.gnu.org/licenses/>.
 ----------------------------------------------------------------------------'''
 
-
+import importScripts.init_run as init_run
 from abc import ABC, abstractmethod
 
 
