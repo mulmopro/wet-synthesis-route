@@ -21,19 +21,27 @@ along with WetSynthRoute.  If not, see <https://www.gnu.org/licenses/>.
 import math
 import numpy as np
 import numpy.linalg as linalg
+import importScripts.init_run as init_run
 
 
 class ChemicalEquilibria(object):
 
     def __init__(
-            self, cationConcRatios, nRSolverOptions, activityModel):
+            self, cationConcRatios, nRSolverOptions, activityModel, liquidPropDict):
         self.cationConcRatios = cationConcRatios
         self.maxIter = nRSolverOptions["maxIter"]
         self.tol = nRSolverOptions["tol"]
         self.activityModel = activityModel
         self.numOfComplexes = [6, 4, 6]
-        self.kw = 10**-14
-        self.k_NH3 = 10**-4.8
+        self.T = init_run.strToFloat(
+            init_run.read_key(liquidPropDict, 'T', 'liquidProp'), 'T')
+        self.T -= 273.15
+        self.rhoLiq = init_run.strToFloat(
+            init_run.read_key(liquidPropDict, 'rhoLiq', 'liquidProp'), 'rhoLiq')
+        self.pKw = -0.000113*self.T**2 + 0.0371*self.T - 14.8
+        self.kw = 10**self.pKw
+        self.pK_NH3 = -0.0000422*self.T**2 + 0.0038*self.T - 4.82
+        self.k_NH3 = 10**self.pK_NH3
         self.k_sp = 10**np.array([-15.22, -12.70, -14.89])
         self.Kn_NMC = 10**np.array([[2.81, 5.08, 6.85, 8.12, 8.93, 9.08],
                                    [1.00, 1.54, 1.70, 1.30, 0.00, 0.00],

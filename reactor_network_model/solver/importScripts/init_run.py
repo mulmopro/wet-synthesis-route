@@ -54,6 +54,7 @@ def initializer(caseDir):
     rhoLiq = strToFloat(
         read_key(liquidPropDict, 'rhoLiq', 'liquidProp'), 'rhoLiq')
     nu = strToFloat(read_key(liquidPropDict, 'nu', 'liquidProp'), 'nu')
+    T = strToFloat(read_key(liquidPropDict, 'T', 'liquidProp'), 'T')
 
     ###########################################################################
     # volumes of each compartment
@@ -217,7 +218,7 @@ def initializer(caseDir):
             cationConcRatios[i] * (atomicMass[i] + 2 * (15.999 + 1.00784))
 
     equilibria = chemicalEquilibria.ChemicalEquilibria(
-        cationConcRatios, nRSolverOpts, activityModel)
+        cationConcRatios, nRSolverOpts, activityModel, liquidPropDict)
 
     # Read the effective concentration
     input_ = read_input('EffectiveConcentration', dict_case)

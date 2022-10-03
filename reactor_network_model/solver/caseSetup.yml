@@ -45,6 +45,7 @@ liquidProp: &liquidProp
     viscosity: 0.001  # (Pa.s)
     nu: 0.000001  # kinematic viscosity (m2/s)
     rhoLiq: 998.2  # liquid density (kg/m3)
+    T: 298.15	# temperature in Kelvin
 
 feeds:
     metals:
@@ -83,7 +84,6 @@ PBM:
     aggregation:  # aggregation can be disabled by commenting following lines
         # Brownian:
         #     C_adj_B: 0
-        #     T: 298  # Temperature in Kelvin
         #     <<: *liquidProp
 
         # Hydrodynamic:
