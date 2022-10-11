@@ -35,8 +35,8 @@ int numOfComplexes[N_METALS] = {
 
 double kn_NMC[N_COMPLEXES]; /* defined in DEFINE_EXECUTE_ON_LOADING */
 double k_sp[N_METALS]; /* defined in DEFINE_EXECUTE_ON_LOADING */
-double Kb_NH3; /* defined in DEFINE_EXECUTE_ON_LOADING */
-double kw = 1e-14;
+double pKb_NH3, Kb_NH3; /* defined in DEFINE_EXECUTE_ON_LOADING */
+double pKw, kw; /* defined in DEFINE_EXECUTE_ON_LOADING */
 double B[N_CATIONS][N_ANIONS]; /* defined in DEFINE_EXECUTE_ON_LOADING */
 double E[N_CATIONS][N_ANIONS]; /* defined in DEFINE_EXECUTE_ON_LOADING */
 
@@ -96,7 +96,9 @@ DEFINE_EXECUTE_ON_LOADING(on_loading_precNMC, libname)
 
     k_sp[0] = POW10(-15.22); k_sp[1] = POW10(-12.70); k_sp[2] = POW10(-14.89);
 
-    Kb_NH3 = POW10(-4.8);
+    pKw = -0.000113*pow((T-273.15), 2) + 0.0371*(T-273.15) - 14.8; kw = POW10(pKw);
+    
+    pKb_NH3 = -0.0000422*pow((T-273.15), 2) + 0.0038*(T-273.15) - 4.82; Kb_NH3 = POW10(pKb_NH3);
 
     B[0][0] = 0.1056; B[0][1] = -0.080;
     B[1][0] = 0.1226; B[1][1] = -0.097;
@@ -462,7 +464,7 @@ DEFINE_ADJUST(adjust, domain)
 
                                     C_UDMI(c, t, indexOH) = conc_OH;
                                     SUPERSATURATION = superSat;
-                                    PH = 14 + log10(conc_OH);
+                                    PH = -pKw + log10(conc_OH);
 
                                     nuclRate = nucleation(superSat);
                                 }

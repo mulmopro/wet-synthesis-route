@@ -39,15 +39,15 @@ along with WetSynthRoute.  If not, see <https://www.gnu.org/licenses/>.
 #define TOLERANCE 1e-6
 
 /* Temperature */
-#define T 298 /* Kelvin */
+#define T 298.15 /* Kelvin */
 
 /* Turbulent viscosity and turbulent Schmidt number */
 #define TURB_VISCOSITY C_MU_T(c, t)
 #define SC_TURB 1.0
 
 /* Aggregation model parameters */
-/* #define C_ADJ_H 8.184647881347898392  Correction coefficient for the hydrodynamic aggregation */
-/* #define A_P 2301441.817408508431293303  yield stress of crystals */
+/* #define C_ADJ_H 1  Correction coefficient for the hydrodynamic aggregation */
+/* #define A_P 1e6  yield stress of crystals */
 #define DISS_RATE(i) C_UDMI(c, t, i)
 #define MU_LIQ C_MU_L(c, t) /* 1e-3 */
 #define TURB_KIN_ENERGY C_K(c, t) /* 0.01011 for 2D simulations */
@@ -60,13 +60,13 @@ along with WetSynthRoute.  If not, see <https://www.gnu.org/licenses/>.
 #define C_PARABOLIC_DD 4
 
 /* #define G0 1e-4 constant growth rate */
-#define K_G 0.0000002202926463 /* growth rate parameter */
+#define K_G 1e-7 /* growth rate parameter */
 #define N_G 1 /* growth rate parameter */
 
-#define K_J_1 28.776 /* nucleation rate parameter */
-#define B_J_1 1784.689983 /* nucleation rate parameter */
-#define K_J_2 14.854 /* nucleation rate parameter */
-#define B_J_2 299.1664179 /* nucleation rate parameter */
+#define K_J_1 30 /* nucleation rate parameter */
+#define B_J_1 2000 /* nucleation rate parameter */
+#define K_J_2 12 /* nucleation rate parameter */
+#define B_J_2 20 /* nucleation rate parameter */
 #define X_C 1e-9 /* nucleate size */
 
 /* crystal properties */

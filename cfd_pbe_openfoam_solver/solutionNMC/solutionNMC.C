@@ -137,6 +137,8 @@ Foam::solutionNMC::solutionNMC
 
     smallConc_(readScalar(lookup("smallConc"))),
 
+    T_(readScalar(lookup("T"))),
+
     effectiveConc_(readScalar(lookup("effectiveConc"))),
 
     writeSummaryInterval_(lookupOrDefault("writeSummaryInterval", 1)),
@@ -949,7 +951,7 @@ bool Foam::solutionNMC::update(label celli)
 
             NH3_[celli] = conc_NH3;
             OH_[celli] = conc_OH;
-            pH_[celli] = 14 - pConcs[indexOH_];
+            pH_[celli] = -pKw_ - pConcs[indexOH_];
 
             superSat_[celli] =
                 Foam::pow
@@ -1011,7 +1013,7 @@ bool Foam::solutionNMC::update(label celli)
                     );
 
                 OH_[celli] = conc_OH;
-                pH_[celli] = 14 + Foam::log10(conc_OH);
+                pH_[celli] = -pKw_ + Foam::log10(conc_OH);
             }
             else  // conc_OH < 1e-7
             {
@@ -1059,7 +1061,7 @@ bool Foam::solutionNMC::update(label celli)
             ) / 2.0;
 
         OH_[celli] = 0.0; // Don't save the equilibrium concentration
-        pH_[celli] = 14 + Foam::log10(conc_OH);
+        pH_[celli] = -pKw_ + Foam::log10(conc_OH);
 
         return false;
     }

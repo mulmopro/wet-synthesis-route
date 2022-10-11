@@ -93,6 +93,9 @@ class solutionNMC
         //- Minimum value for concentrations
         scalar smallConc_;
 
+        //- Constant value for the temperature
+        scalar T_;
+
         //- Minimum value for effective concentrations
         scalar effectiveConc_;
 
@@ -142,11 +145,13 @@ class solutionNMC
         //- activity coefficient model
         autoPtr<activityCoeffModel> activityModel_;
 
-        //- Dissociation constant of ammonia 
-        const scalar Kb_NH3_ = Foam::pow(10, -4.8);
-        
-        //- Dissociation constant of water 
-        const scalar kw_ = 1e-14;
+        //- Dissociation constant of water
+        const scalar pKw_ = -0.000113*Foam::pow((T_-273.15), 2) + 0.0371*(T_-273.15) - 14.8;
+        const scalar kw_ = Foam::pow(10, pKw_);
+
+        //- Dissociation constant of ammonia
+        const scalar pKb_NH3_ = -0.0000422*Foam::pow((T_-273.15), 2) + 0.0038*(T_-273.15) - 4.82; 
+        const scalar Kb_NH3_ = Foam::pow(10, pKb_NH3_);
 
         const scalar ln10_ = Foam::log(10.0);
 

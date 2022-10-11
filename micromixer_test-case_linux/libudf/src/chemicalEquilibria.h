@@ -110,7 +110,7 @@ double pureActivity(const double* z_c, const double* z_a, const double I_s,
 }
 
 
-double* activityBromley(const double* cationMolalConc, const double* anionMolalConc, double* gamma_ca)
+void activityBromley(const double* cationMolalConc, const double* anionMolalConc, double* gamma_ca)
 {
     /* cationOrder = Ni, Mn, Co, Na, NH4, H
         anionOrder = SO4, OH */
@@ -194,8 +194,6 @@ double* activityBromley(const double* cationMolalConc, const double* anionMolalC
         
         gamma_ca[i] = pow(10, log_gamma_ca);        
     }
-
-    return gamma_ca;
 }
 
 
@@ -205,6 +203,10 @@ void solveEquilibria(const double* totalConcs, double* pConcs, double cationTota
 {
     double negf[N_COMPS];
     double J[N_COMPS*N_COMPS];
+
+    printf("Temperature: %f \n", T);
+    printf("pKw: %f \nkw: %e \n", pKw, kw);
+    printf("pKb_NH3: %f \nKb_NH3: %e \n", pKb_NH3, Kb_NH3);
 
     int i;
     for (i=0; i<N_COMPS; i++)
@@ -301,8 +303,10 @@ void solveEquilibria(const double* totalConcs, double* pConcs, double cationTota
             powConcs_NMC *= pow(equilConcs[j]*pow(gamma_ca[j], 3), cationConcRatio);
         }
 
-        *pH = 14 - pConcs[indexOH];
+        *pH = -pKw - pConcs[indexOH];
 
         *superSat = pow(powConcs_NMC*conc_OH*conc_OH / k_sp_NMC, 1.0/3.0);
     }
 }
+
+

@@ -299,7 +299,7 @@ void solveEquilibria(const double* totalConcs, double* pConcs, double cationTota
             powConcs_NMC *= pow(equilConcs[j]*pow(gamma_ca[j], 3), cationConcRatio);
         }
 
-        *pH = 14 - pConcs[indexOH];
+        *pH = -pKw - pConcs[indexOH];
 
         *superSat = pow(powConcs_NMC*conc_OH*conc_OH / k_sp_NMC, 1.0/3.0);
     }

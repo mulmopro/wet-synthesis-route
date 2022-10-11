@@ -39,7 +39,7 @@ along with WetSynthRoute.  If not, see <https://www.gnu.org/licenses/>.
 #define TOLERANCE 1e-6
 
 /* Temperature */
-#define T 298 /* Kelvin */
+#define T 298.15 /* Kelvin */
 
 /* Turbulent viscosity and turbulent Schmidt number */
 #define TURB_VISCOSITY C_MU_T(c, t)
