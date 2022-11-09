@@ -42,6 +42,8 @@ class erosion
 {
     // Private data
 
+    const scalar m_;
+
 public:
 
     // Constructors

@@ -104,6 +104,8 @@ PBM:
 
     fragmentDistribution:
         type: symmetricFragmentation
+        # C: 1    # For parabolicFragmentation
+        # m: 5    # For erosionFragmentation (smallest daughter particle has a volume equal to 1/m of mother particle volume)
 
     nucleateSize:
         type: Fixed

@@ -119,7 +119,7 @@ double breakage(double L1, double epsilon, double nu)
 /* erosion daughter distribution */
 double erosionDD(double L1, double k)
 {
-    return 1.0 + pow(pow(L1, 3) - 1.0, k/3.0);
+    return pow(L1, k) * ((1 + pow(M_EROSION_DD - 1, k/3))/pow(M_EROSION_DD, k/3));
 }
 
 /* parabolic daughter distribution */

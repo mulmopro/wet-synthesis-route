@@ -58,6 +58,7 @@ along with WetSynthRoute.  If not, see <https://www.gnu.org/licenses/>.
 #define C_BR_3 0
 #define BR_DAUGHTER_DIST uniformDD(L_i, momIndex) /* erosionDD, parabolicDD, symmetricDD, uniformDD */
 #define C_PARABOLIC_DD 4
+#define M_EROSION_DD 5
 
 /* #define G0 1e-4 constant growth rate */
 #define K_G 1e-7 /* growth rate parameter */

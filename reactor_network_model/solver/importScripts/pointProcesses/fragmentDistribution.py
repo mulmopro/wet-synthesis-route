@@ -103,7 +103,11 @@ class Laakkonen(FragmentDist):
 
 class Erosion(FragmentDist):
 
+    paramList = []
+
     def __init__(self, dict):
+        self.m = init_run.strToFloat(
+            init_run.read_key(dict, 'm', 'fragmentDistribution'), 'm')
 
         super(Erosion, self).__init__()
 
@@ -111,7 +115,7 @@ class Erosion(FragmentDist):
 
         if L > 0.0:
 
-            return 1.0 + (L**3 - 1.0)**(k/3.0)
+            return (L**k)*((1 + (self.m-1)**(k/3))/(self.m**(k/3)))
 
         return 0.0
 

@@ -39,7 +39,8 @@ erosion::erosion
     const incompressible::momentumTransportModel& turbulence
 )
 :
-    daughterDistribution(turbulence)
+    daughterDistribution(turbulence),
+    m_(readScalar(dict.lookup("m")))
 {}
 
 
@@ -59,14 +60,14 @@ erosion::distribution
 ) const
 {
     return
-        1.0 + pow(pow(Li, 3) - 1.0, k/3.0);
+        pow(Li, k) * ((1 + pow(m_ - 1, k/3))/pow(m_, k/3));
 }
 
 
 scalar erosion::distribution(scalar Li, int k) const
 {
     return
-        1.0 + pow(pow(Li, 3) - 1.0, k/3.0);
+        pow(Li, k) * ((1 + pow(m_ - 1, k/3))/pow(m_, k/3));
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
