@@ -39,6 +39,7 @@ namespace Foam
 
 struct UserData;
 class activityCoeffModel;
+class envMixing;
 
 /*---------------------------------------------------------------------------*\
                       Class solutionNMC Declaration
@@ -59,6 +60,9 @@ class solutionNMC
 
         //- Reference to the turbulence
         const incompressible::momentumTransportModel& turbulence_;
+
+        //- Reference to the micromixing model
+        const envMixing& micromixing_;
 
         //- List of the metals
         List<word> metalNames_;
@@ -208,7 +212,8 @@ public:
         (
             const fvMesh&,
             const surfaceScalarField&,
-            const incompressible::momentumTransportModel&
+            const incompressible::momentumTransportModel&,
+            const envMixing&
         );
 
 

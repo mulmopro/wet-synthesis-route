@@ -5,7 +5,8 @@ int error_flag = 0;
 #ifdef _OPENMP
 #pragma omp parallel default(none) \
         shared(nMetals, nMoments, nY, nCells, odeEndTime, activeCellsField, \
-            totalMetalConcs, moments, odes, solution_nmc, error_flag)
+            reactingEnvP, totalMetalConcs, moments, odes, solution_nmc, \
+            error_flag)
 {
     odeSolver& ode = odes[omp_get_thread_num()];
 #else
@@ -22,7 +23,7 @@ int error_flag = 0;
     #endif
     for (int celli=0; celli<nCells; celli++)
     {
-        if (activeCellsField[celli] > 0)
+        if (activeCellsField[celli] > 0 && reactingEnvP[celli] > 1e-4)
         {
             // update the supersaturation, pH and equilibrium concentrations
             // before integration (if total concentrations are valid)
@@ -48,13 +49,13 @@ int error_flag = 0;
                 {
                     ode.solve(y, 0.0, odeEndTime);
 
-                    // No data race, but risk of false sharing
+                    // No risk of data race, but risk of false sharing
                     for(i = 0; i < nMetals; i++)
                     {
                         totalMetalConcs[i][celli] = y[i];
                     }
 
-                    // No data race, but risk of false sharing
+                    // No risk of data race, but risk of false sharing
                     for(i = 0; i < nMoments; i++)
                     {
                         moments[i][celli] = y[i + nMetals];

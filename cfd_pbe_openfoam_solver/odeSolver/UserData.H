@@ -68,7 +68,7 @@ struct UserData{
     totalSO4(solution.totalSO4()[celli]),
     effectiveConc(solution.effectiveConc()), kv(pb.kv_),
     crystalRho(pb.crystalRho()), crystalMW(pb.crystalMW()), superSat(0.0),
-    concNH3(solution.NH3()[celli]), concOH(solution.OH()[celli]),
+    concNH3(solution.NH3()[celli]), concOH(solution.OH()[celli]), reactEnvP(0.0),
     physChemData_{
         turbulence.epsilon()().internalField()[celli],
         turbulence.nu()().internalField()[celli],
@@ -92,7 +92,7 @@ struct UserData{
     const label nMetals, nMoments;
     realtype totalNH3, totalNa, totalSO4;
     const realtype effectiveConc, kv, crystalRho, crystalMW;
-    realtype superSat, concNH3, concOH;
+    realtype superSat, concNH3, concOH, reactEnvP;
     realtype metalCationConcs[3];
 
     PhysChemData physChemData_;

@@ -26,6 +26,7 @@ and the OpenFOAM Foundation.
 
 #include "UserData.H"
 #include "activityCoeffModel.H"
+#include "envMixing.H"
 #include "cellSet.H"
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
@@ -94,7 +95,8 @@ Foam::solutionNMC::solutionNMC
 (
     const fvMesh& mesh,
     const surfaceScalarField& phi,
-    const incompressible::momentumTransportModel& turbulence
+    const incompressible::momentumTransportModel& turbulence,
+    const envMixing& micromixing
 )
 :
     IOdictionary
@@ -114,6 +116,8 @@ Foam::solutionNMC::solutionNMC
     phi_(phi),
 
     turbulence_(turbulence),
+
+    micromixing_(micromixing),
 
     metalNames_(lookup("metals")),
 
@@ -263,6 +267,15 @@ Foam::solutionNMC::solutionNMC
         mesh
     )
 {
+    if (micromixing_.envConcs().size() != nTotalConc_)
+    {
+        FatalErrorInFunction
+            << "The number of feed concentrations in the micromixing model "
+            << endl << "does not match the number of transported concentrations ("
+            << nTotalConc_ << ")"
+            << exit(FatalError);
+    }
+
     for (label count=0; count < nMetals_; count++)
     {
         word metalName(metalNames_[count]);
@@ -411,18 +424,20 @@ void Foam::solutionNMC::solve(const realtype *y, UserData *aux_data,
     List<scalar> totalConcs(nTotalConc_);
     List<scalar> pConcs(nComps_);
 
+    scalar reactEnvP = aux_data->reactEnvP;
+
     scalar cationTotalConc(0.0);
     for (i=0; i<nMetals_; i++)
     {
-        totalConc = y[i];
+        totalConc = y[i] / reactEnvP;
 
         totalConcs[i] = totalConc;
         cationTotalConc += totalConc;
     }
 
-    scalar totalConc_NH3(aux_data->totalNH3);
-    scalar totalConc_Na(aux_data->totalNa);
-    scalar totalConc_SO4(aux_data->totalSO4);
+    scalar totalConc_NH3(aux_data->totalNH3 / reactEnvP);
+    scalar totalConc_Na(aux_data->totalNa / reactEnvP);
+    scalar totalConc_SO4(aux_data->totalSO4 / reactEnvP);
 
     if (totalConc_NH3 > effectiveConc_)
     {
@@ -719,13 +734,15 @@ bool Foam::solutionNMC::update(label celli)
     List<scalar> equilConcs(nComps_);
     List<scalar> pConcs(nComps_);
 
+    scalar reactEnvP = micromixing_.reactingEnvP()[celli];
+
     validTotalConc = true;
     validEquilConc = true;
 
     cationTotalConc = 0.0;
     for (i=0; i<nMetals_; i++)
     {
-        totalConc = totalMetalConcs_[i][celli];
+        totalConc = totalMetalConcs_[i][celli] / reactEnvP;
 
         totalConcs[i] = totalConc;
         cationTotalConc += totalConc;
@@ -749,9 +766,9 @@ bool Foam::solutionNMC::update(label celli)
         }
     }
 
-    totalConc_NH3 = totalNH3_[celli];
-    totalConc_Na = totalNa_[celli];
-    totalConc_SO4 = totalSO4_[celli];
+    totalConc_NH3 = totalNH3_[celli] / reactEnvP;
+    totalConc_Na = totalNa_[celli] / reactEnvP;
+    totalConc_SO4 = totalSO4_[celli] / reactEnvP;
 
     if (totalConc_Na < 0.0)
     {
@@ -1086,15 +1103,22 @@ void Foam::solutionNMC::transport_species()
 
         volScalarField DEff = Dturb + D_[metali];
 
+        DimensionedField<scalar, volMesh> cFlux =
+            micromixing_.pFluxes()[0] * micromixing_.envConcs()[metali];
+
         makeConcTransportEq(metal);
     }
 
+    DimensionedField<scalar, volMesh> cFlux =
+        micromixing_.pFluxes()[1] * micromixing_.envConcs()[indexNH3_];
     volScalarField DEff = Dturb + D_[indexNH3_];
     makeConcTransportEq(totalNH3_);
 
+    cFlux = micromixing_.pFluxes()[2] * micromixing_.envConcs()[indexNa_];
     DEff = Dturb + D_[indexNa_];
     makeConcTransportEq(totalNa_);
 
+    cFlux = micromixing_.pFluxes()[0] * micromixing_.envConcs()[indexSO4_];
     DEff = Dturb + D_[indexSO4_];
     makeConcTransportEq(totalSO4_);
 }

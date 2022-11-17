@@ -47,6 +47,7 @@ namespace Foam
 class fvMesh;
 class solutionNMC;
 class populationBalance;
+class envMixing;
 
 /*---------------------------------------------------------------------------*\
                          Class odeSolverList Declaration
@@ -73,7 +74,8 @@ class odeSolverList
             label,
             const incompressible::momentumTransportModel&,
             const populationBalance&,
-            const solutionNMC&
+            const solutionNMC&,
+            const envMixing&
         );
 
 public:
@@ -86,6 +88,7 @@ public:
             const incompressible::momentumTransportModel& turbulence,
             const populationBalance& pb,
             const solutionNMC& solution,
+            const envMixing& micromixing,
             label num_threads
         );
 

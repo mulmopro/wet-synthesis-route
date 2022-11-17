@@ -5,6 +5,7 @@ EXE_INC = \
     -I$(LIB_SRC)/finiteVolume/lnInclude \
     -I$(LIB_SRC)/meshTools/lnInclude \
     -I$(LIB_SRC)/sampling/lnInclude \
+	-Imicromixing/lnInclude \
     -IsolutionNMC/lnInclude \
     -IpopulationBalance/lnInclude \
     -I$(SUNDIALS_SRC) \
@@ -24,6 +25,7 @@ EXE_LIBS = \
     -lmeshTools \
     -lfvOptions \
     -lsampling \
+	-lpisoMicromixing \
     -lpisoSolutionNMC \
     -lpisoPopulationBalancePrecNMC \
     -lsundials_cvode \

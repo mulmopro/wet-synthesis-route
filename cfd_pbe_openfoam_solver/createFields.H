@@ -44,7 +44,11 @@ autoPtr<incompressible::momentumTransportModel> turbulence
 
 incompressible::momentumTransportModel& turb_ref = turbulence();
 
-solutionNMC solution_nmc(mesh, phi, turb_ref);
+envMixing micromixing(mesh, phi, turbulence());
+
+const volScalarField& reactingEnvP = micromixing.reactingEnvP();
+
+solutionNMC solution_nmc(mesh, phi, turb_ref, micromixing);
 
 autoPtr<populationBalance> pb
 (
@@ -86,7 +90,8 @@ label num_threads;
     num_threads = 1;
 #endif
 
-odeSolverList odes(mesh, turb_ref, pb_ref, solution_nmc, num_threads);
+odeSolverList odes(
+    mesh, turb_ref, pb_ref, solution_nmc, micromixing, num_threads);
 
 #include "createMRF.H"
 #include "createFvOptions.H"

@@ -37,6 +37,7 @@ namespace Foam
 class fvMesh;
 class solutionNMC;
 class populationBalance;
+class envMixing;
 class dictionary;
 struct UserData;
 
@@ -57,6 +58,9 @@ class odeSolver
 
         //- Reference to the solution
         const solutionNMC& solution_;
+
+        //- Reference to the micromixing model
+        const envMixing& micromixing_;
 
         //- problem size 
         sunindextype N_;
@@ -121,6 +125,7 @@ public:
             const incompressible::momentumTransportModel& turbulence,
             const populationBalance& pb,
             const solutionNMC& solution,
+            const envMixing& micromixing,
             const dictionary& dict
         );
 

@@ -27,6 +27,7 @@ License
 
 #include "solutionNMC.H"
 #include "populationBalance.H"
+#include "envMixing.H"
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -37,6 +38,7 @@ Foam::odeSolverList::odeSolverList
     const incompressible::momentumTransportModel& turbulence,
     const populationBalance& pb,
     const solutionNMC& solution,
+    const envMixing& micromixing,
     label num_threads
 )
 :
@@ -58,7 +60,7 @@ Foam::odeSolverList::odeSolverList
 {
     forAll(*this, index)
     {
-        set(index, turbulence, pb, solution);
+        set(index, turbulence, pb, solution, micromixing);
     }
 }
 
@@ -76,13 +78,14 @@ void Foam::odeSolverList::set
     label index,
     const incompressible::momentumTransportModel& turbulence,
     const populationBalance& pb,
-    const solutionNMC& solution
+    const solutionNMC& solution,
+    const envMixing& micromixing
 )
 {
     PtrList<odeSolver>::set
     (
         index,
-        new odeSolver(mesh_, turbulence, pb, solution, this)
+        new odeSolver(mesh_, turbulence, pb, solution, micromixing, *this)
     );
 }
 

@@ -16,6 +16,7 @@
         fvm::ddt(Specie)                                                      \
       + fvm::div(phi_, Specie)                                                \
       - fvm::laplacian(DEff, Specie)                                          \
+     == cFlux                                                                 \
     );                                                                        \
                                                                               \
     tCiEqn.ref().relax();                                                     \

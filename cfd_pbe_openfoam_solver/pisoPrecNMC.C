@@ -26,6 +26,7 @@ and the OpenFOAM Foundation.
 #include "pisoControl.H"
 #include "fvOptions.H"
 
+#include "envMixing.H"
 #include "solutionNMC.H"
 #include "populationBalance.H"
 #include "odeSolver/odeSolverList.H"
@@ -45,6 +46,7 @@ int main(int argc, char *argv[])
     #include "createTime.H"
     #include "createMesh.H"
     #include "createControl.H"
+    #include "createTimeControls.H"
     #include "createFields.H"
     #include "initContinuityErrs.H"
 
@@ -60,6 +62,12 @@ int main(int argc, char *argv[])
         piso.dict().lookupOrDefault<Switch>("precipitation", false)
     );
 
+    if (CFD)
+    {
+        #include "CourantNo.H"
+        #include "setInitialDeltaT.H"
+    }
+
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
     Foam::Info<< "\nStarting time loop\n" << endl;
@@ -68,10 +76,14 @@ int main(int argc, char *argv[])
     {
         Foam::Info<< "Time = " << runTime.timeName() << nl << endl;
 
+        #include "readTimeControls.H"
+
         #include "CourantNo.H"
 
         if (CFD)
         {
+            #include "setDeltaT.H"
+
             // Pressure-velocity PISO corrector
             {
                 #include "UEqn.H"
@@ -91,8 +103,16 @@ int main(int argc, char *argv[])
            which is done by adopting operator-splitting approach */
         if (precipitation)
         {
+            micromixing.solve();
+
+            // update the reacting environment probability fluxes
+            micromixing.p_flux();
+
             pb->transport_moments();
             solution_nmc.transport_species();
+
+            // update the reacting environment probability before source integration
+            micromixing.update_react_env();
 
             // Precipitation is included by using the operator-splitting method
             #include "precSource.H"

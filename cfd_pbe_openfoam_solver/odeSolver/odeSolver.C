@@ -31,6 +31,7 @@ and the OpenFOAM Foundation.
 #include "aggregationList.H"
 #include "breakageList.H"
 #include "inversionAlgorithm.H"
+#include "envMixing.H"
 
 #include "dictionary.H"
 
@@ -44,7 +45,7 @@ int Foam::odeSolver::odeEqs
     int i, j;
     label nMetals, nMoments;
     realtype superSat, growthRate, nucRate, nucSize, precRate, kv, crystalRho,
-        crystalMW, effectiveConc, y_data_i;
+        crystalMW, effectiveConc, y_data_i, reactEnvP;
     realtype cationConcRatios[3];
     realtype *y_data, *ydot_data;
     UserData *aux_data;
@@ -56,8 +57,6 @@ int Foam::odeSolver::odeEqs
 
     nMetals = aux_data->nMetals;
     nMoments = aux_data->nMoments;
-
-    effectiveConc = aux_data->effectiveConc;
 
     scalar cationTotalConc(0.0);
     for (i=0; i<nMetals; i++)
@@ -76,7 +75,11 @@ int Foam::odeSolver::odeEqs
         cationTotalConc += y_data_i;
     }
 
-    if (!(cationTotalConc > effectiveConc))
+    reactEnvP = aux_data->reactEnvP;
+
+    effectiveConc = aux_data->effectiveConc;
+
+    if (!(cationTotalConc > effectiveConc * reactEnvP))
     {
         throw lowMetalConcException{};
     }
@@ -99,7 +102,7 @@ int Foam::odeSolver::odeEqs
 
             return (1);
         }
-        moments[i] = moment_i;
+        moments[i] = moment_i / reactEnvP;
     }
 
     aux_data->solution_.solve(y_data, aux_data, cationConcRatios);
@@ -123,8 +126,9 @@ int Foam::odeSolver::odeEqs
     {
         for(i=1; i < nMoments; i++)
         {
-            ydot_data[i + nMetals] = i * growthRate * moments[i - 1]
-                + nucRate*pow(nucSize, i);
+            ydot_data[i + nMetals] = (
+                i * growthRate * moments[i - 1] + nucRate*pow(nucSize, i)
+            ) * reactEnvP;
         }
 
         precRate = kv * ydot_data[3 + nMetals] * crystalRho / crystalMW;
@@ -143,17 +147,19 @@ int Foam::odeSolver::odeEqs
             {
                 if (i != 3)
                 {
-                    ydot_data[i + nMetals] +=
+                    ydot_data[i + nMetals] += (
                         aux_data->aggregation_.source(nodes, weights, i, physChemData)
-                      + aux_data->breakage_.source(nodes, weights, i, physChemData);
+                      + aux_data->breakage_.source(nodes, weights, i, physChemData)
+                    ) * reactEnvP;
                 }
             }
         }
     }
     else
     {
-        ydot_data[nMetals + 1] = growthRate * moments[0]
-                + nucRate*nucSize;
+        ydot_data[nMetals + 1] = (
+            growthRate * moments[0] + nucRate*nucSize
+        ) * reactEnvP;
 
         precRate = 
             kv
@@ -161,7 +167,7 @@ int Foam::odeSolver::odeEqs
                 3.0*growthRate*pow(moments[1], 2) / moments[0] +
                 nucRate*pow(nucSize, 3)
             )
-          * crystalRho / crystalMW;
+          * reactEnvP * crystalRho / crystalMW;
 
         List<scalar> nodes(1, moments[1] / moments[0]);
         List<scalar> weights(1, moments[0]);
@@ -171,9 +177,10 @@ int Foam::odeSolver::odeEqs
 
         for(i=0; i < nMoments; i++)
         {
-            ydot_data[i + nMetals] +=
+            ydot_data[i + nMetals] += (
                 aux_data->aggregation_.source(nodes, weights, i, physChemData)
-              + aux_data->breakage_.source(nodes, weights, i, physChemData);
+              + aux_data->breakage_.source(nodes, weights, i, physChemData)
+            ) * reactEnvP;
         }
     }
 
@@ -204,6 +211,7 @@ Foam::odeSolver::odeSolver
     const incompressible::momentumTransportModel& turbulence,
     const populationBalance& pb,
     const solutionNMC& solution,
+    const envMixing& micromixing,
     const dictionary& dict
 )
 :
@@ -212,6 +220,8 @@ Foam::odeSolver::odeSolver
     pb_(pb),
 
     solution_(solution),
+
+    micromixing_(micromixing),
 
     N_(solution.nMetals() + pb.numOfMoments()),
 
@@ -434,9 +444,9 @@ void Foam::odeSolver::updateUserData(Foam::label celli)
     aux_data_->totalSO4 = solution_.totalSO4()[celli];
     aux_data_->concNH3 = solution_.NH3()[celli];
     aux_data_->concOH = solution_.OH()[celli];
+    aux_data_->reactEnvP = micromixing_.reactingEnvP()[celli];
     aux_data_->physChemData_.epsilon =
         turbulence_.epsilon()().internalField()[celli];
-
     aux_data_->physChemData_.nu = turbulence_.nu()().internalField()[celli];
 
     for(int i=0; i<solution_.nMetals(); i++)

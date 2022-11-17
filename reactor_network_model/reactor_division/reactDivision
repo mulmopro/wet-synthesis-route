@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# Main script for dividing reactor
+
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+python3 extract_info.py 
+python3 react_divisions.py

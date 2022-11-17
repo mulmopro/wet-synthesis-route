@@ -18,10 +18,14 @@ cd ..
 export SUNDIALS_SRC=$ROOT_DIR/sundials/instdir/include
 export SUNDIALS_LIB=$ROOT_DIR/sundials/instdir/lib
 
+wmakeLnInclude micromixing
 wmakeLnInclude solutionNMC
 wmakeLnInclude populationBalance
+
+"$WM_DIR_MOD/wmake" $targetType micromixing
 "$WM_DIR_MOD/wmake" $targetType solutionNMC
 "$WM_DIR_MOD/wmake" $targetType populationBalance
+
 "$WM_DIR_MOD/wmake" $targetType
 
 #------------------------------------------------------------------------------
