@@ -67,13 +67,13 @@ def main(argv):
         low_limit_p = 0.0001
         high_limit_p = 0.9999
 
-        redo_regions = False
+        redo_regions = True
 
         low_limit_epsilon = 1e-5
 
-        num_zones_out = 198
+        num_zones_out = 22
 
-        num_zones_in = 200
+        num_zones_in = 24
 
         ''' Mark the region of interest '''
 
@@ -232,7 +232,7 @@ def main(argv):
 
         zone_id_path = os.path.join(OF_data_path, time_dir, 'zone_id')
 
-        fieldName = 'supersaturation'
+        fieldName = 'p_env1'
         field_path = os.path.join(OF_data_path, time_dir, fieldName)
 
         num_header_rows = 16
