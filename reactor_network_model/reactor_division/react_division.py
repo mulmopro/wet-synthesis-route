@@ -36,11 +36,11 @@ def main(argv):
         field_path = os.path.join(OF_data_path, time_dir, fieldName)
         p_env1, _ = read_field(field_path, read_boundary=False)
 
-        fieldName = 'p_env2'
+        fieldName = 'p_env3'
         field_path = os.path.join(OF_data_path, time_dir, fieldName)
-        p_env2, _ = read_field(field_path, read_boundary=False)
+        p_env3, _ = read_field(field_path, read_boundary=False)
 
-        p_Metal_NaOH = p_env1 + p_env2
+        p_Metal_NaOH = p_env1 + p_env3
 
         fieldName = 'epsilon'
         field_path = os.path.join(OF_data_path, time_dir, fieldName)
