@@ -82,25 +82,25 @@ PBM:
         B2: 3.4125
 
     aggregation:  # aggregation can be disabled by commenting following lines
-        # Brownian:
-        #     C_adj_B: 0
-        #     <<: *liquidProp
+        Brownian:
+            C_adj_B: 0
+            <<: *liquidProp
 
-        # Hydrodynamic:
-        #     C_adjust: 0.158
-        #     <<: *liquidProp
+        Hydrodynamic:
+            C_adjust: 0.913
+            <<: *liquidProp
 
     aggrEfficiency:
         type: Exponential  # Exponential, Rational, Constant
-        A: 4.92
+        A: 6.36
         <<: *liquidProp
         # constValue: 1.0
 
     breakage:
-        type: NoBreakage
-        # gamma: 1
-        # Cbr: 1e-6
-        # <<: *liquidProp
+        type: PowerLaw
+        gamma: 1
+        Cbr: 1e-6
+        <<: *liquidProp
 
     fragmentDistribution:
         type: symmetricFragmentation

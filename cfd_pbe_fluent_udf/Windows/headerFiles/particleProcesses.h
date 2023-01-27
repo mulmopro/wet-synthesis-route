@@ -106,11 +106,16 @@ double aggregation(double superSat, double L1, double L2, double epsilon,
 /* Function to calculate the breakage rate */
 double breakage(double L1, double epsilon, double nu)
 {
+    double kolmogorov_length = 0.0;
+    double kolmogorov_time = 0.0;
     double brRate = 0.0;
     
     if (L1 > 0.0)
     {
-        brRate = C_BR_1 * pow(epsilon / nu, C_BR_2 / 2.0) * pow(L1, C_BR_3);
+        kolmogorov_length = pow((pow(nu, 3) / epsilon), 0.25);
+        kolmogorov_time = pow((nu / epsilon), 0.5);
+        
+        brRate = C_BR * pow((L1 / kolmogorov_length), GAMMA) / kolmogorov_time;
     }
 
     return brRate;

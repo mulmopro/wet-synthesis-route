@@ -19,7 +19,7 @@ along with WetSynthRoute.  If not, see <https://www.gnu.org/licenses/>.
 
 
 void equilibriaEqs(double* pConcs, const double* totalConcs, double cationTotalConc,
-    double *negf, double *J)
+    double *negf, double *J, double kw, double Kb_NH3)
 {
     int i, j;
     int countComplex = 0;
@@ -198,15 +198,17 @@ void activityBromley(const double* cationMolalConc, const double* anionMolalConc
 
 
 void solveEquilibria(const double* totalConcs, double* pConcs, double cationTotalConc,
-    const double* cationConcRatios, double* equilConcs, double *pH, double* superSat,
+    const double* cationConcRatios, double* equilConcs, double rhoLiq, double *pH, double* superSat,
     int* interruptFlag)
 {
     double negf[N_COMPS];
     double J[N_COMPS*N_COMPS];
+    double pKw, kw, pKb_NH3, Kb_NH3;    
 
-    printf("Temperature: %f \n", T);
-    printf("pKw: %f \nkw: %e \n", pKw, kw);
-    printf("pKb_NH3: %f \nKb_NH3: %e \n", pKb_NH3, Kb_NH3);
+    pKw = Aw + Bw/T + Cw/(pow(T, 2)) + Dw/(pow(T, 3)) + (Ew + Fw/T + Gw/(pow(T, 3)))*log10(rhoLiq/1000);
+    kw = POW10(pKw);
+    pKb_NH3 = -pKw - (0.09018+2729.92/T);
+    Kb_NH3 = POW10(-pKb_NH3);
 
     int i;
     for (i=0; i<N_COMPS; i++)
@@ -225,7 +227,7 @@ void solveEquilibria(const double* totalConcs, double* pConcs, double cationTota
     double error;
     for(i=0; i<MAX_ITER; i++)
     {
-        equilibriaEqs(pConcs, totalConcs, cationTotalConc, negf, J);
+        equilibriaEqs(pConcs, totalConcs, cationTotalConc, negf, J, kw, Kb_NH3);
         
         dgesv(&n, &nrhs, J, &lda, ipiv, negf, &ldb, &info);
         
@@ -303,7 +305,7 @@ void solveEquilibria(const double* totalConcs, double* pConcs, double cationTota
             powConcs_NMC *= pow(equilConcs[j]*pow(gamma_ca[j], 3), cationConcRatio);
         }
 
-        *pH = -pKw - pConcs[indexOH];
+        *pH = 14 - pConcs[indexOH];
 
         *superSat = pow(powConcs_NMC*conc_OH*conc_OH / k_sp_NMC, 1.0/3.0);
     }

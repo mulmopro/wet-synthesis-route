@@ -33,6 +33,7 @@ extern int indexP4;
 
 extern real c_adj_h;
 extern real A_p;
+extern real T;
 
 extern int env_c_rpIndex[N_UDS_C];
 extern real env_conc[N_UDS_C];

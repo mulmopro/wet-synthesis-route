@@ -7,8 +7,40 @@ make[3]: Entering directory `/home/aquerio/udf/libudf/lnamd64/3ddp_host'
 cc -D_lnamd64 -D_GNU_SOURCE -fpic -shared -ansi -Wall -O -DPTR_RESTRICT=    -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/`expr "\`pwd\`" : '.*/\(.*\)/[23].*'`/`basename "\`pwd\`"` -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/main -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/addon-wrapper -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/io -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/species -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/pbns -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/numerics -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/sphysics -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/storage -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/mphase -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/bc -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/models -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/material -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/amg -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/util -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/mesh -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/udf -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/ht -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/dx -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/turbulence -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/acoustics -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/parallel -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/etc -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/ue -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/dpm -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/dbns -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/cortex/src -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/client/src -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/tgrid/src -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/multiport/src -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/multiport/mpi_wrapper/include -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/multiport/mpi_wrapper/src -I/share/apps/ansys/2020r2/v202/fluent/include -I. -c udf_names.c
 # Compiling precNMC_adjust.o because of precNMC_adjust.c chemicalEquilibria.h defMacros.h externFuncs.h externVars.h momentCalc.h particleProcesses.h
 cc -D_lnamd64 -D_GNU_SOURCE -fpic -shared -ansi -Wall -O -DPTR_RESTRICT=     -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/`expr "\`pwd\`" : '.*/\(.*\)/[23].*'`/`basename "\`pwd\`"` -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/main -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/addon-wrapper -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/io -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/species -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/pbns -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/numerics -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/sphysics -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/storage -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/mphase -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/bc -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/models -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/material -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/amg -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/util -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/mesh -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/udf -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/ht -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/dx -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/turbulence -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/acoustics -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/parallel -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/etc -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/ue -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/dpm -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/dbns -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/cortex/src -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/client/src -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/tgrid/src -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/multiport/src -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/multiport/mpi_wrapper/include -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/multiport/mpi_wrapper/src -I/share/apps/ansys/2020r2/v202/fluent/include -I. -c precNMC_adjust.c
+In file included from precNMC_adjust.c:22:0:
+defMacros.h:42:11: error: expected identifier or ‘(’ before numeric constant
+ #define T 298.15 /* Kelvin */
+           ^
+precNMC_adjust.c:48:6: note: in expansion of macro ‘T’
+ real T;
+      ^
+precNMC_adjust.c: In function ‘adjust’:
+precNMC_adjust.c:241:15: error: lvalue required as left operand of assignment
+             T = RP_Get_Real("temperature/t");
+               ^
+In file included from /share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/multiport/src/mport.h:976:0,
+                 from /share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/main/global.h:259,
+                 from /share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/udf/udf.h:22,
+                 from precNMC_adjust.c:21:
+/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/multiport/src/hostnode.h:142:61: error: lvalue required as unary ‘&’ operand
+ #define host_to_node_double_3(a,b,c)mphost_to_node_double_3(&(a),&(b),&(c) DEBUG_FILE_LINE__)
+                                                             ^
+/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/parallel/para.h:775:31: note: in expansion of macro ‘host_to_node_double_3’
+ #  define host_to_node_real_3 host_to_node_double_3
+                               ^
+precNMC_adjust.c:257:5: note: in expansion of macro ‘host_to_node_real_3’
+     host_to_node_real_3(T, c_adj_h, A_p);
+     ^
+make[3]: *** [precNMC_adjust.o] Error 1
 # Compiling precNMC_sources.o because of precNMC_sources.c chemicalEquilibria.h defMacros.h externFuncs.h externVars.h momentCalc.h particleProcesses.h
 cc -D_lnamd64 -D_GNU_SOURCE -fpic -shared -ansi -Wall -O -DPTR_RESTRICT=     -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/`expr "\`pwd\`" : '.*/\(.*\)/[23].*'`/`basename "\`pwd\`"` -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/main -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/addon-wrapper -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/io -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/species -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/pbns -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/numerics -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/sphysics -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/storage -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/mphase -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/bc -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/models -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/material -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/amg -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/util -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/mesh -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/udf -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/ht -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/dx -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/turbulence -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/acoustics -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/parallel -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/etc -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/ue -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/dpm -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/src/dbns -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/cortex/src -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/client/src -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/tgrid/src -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/multiport/src -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/multiport/mpi_wrapper/include -I/share/apps/ansys/2020r2/v202/fluent/fluent20.2.0/multiport/mpi_wrapper/src -I/share/apps/ansys/2020r2/v202/fluent/include -I. -c precNMC_sources.c
+In file included from precNMC_sources.c:22:0:
+defMacros.h:42:11: error: expected identifier or ‘(’ before numeric constant
+ #define T 298.15 /* Kelvin */
+           ^
+externVars.h:36:13: note: in expansion of macro ‘T’
+ extern real T;
+             ^
 precNMC_sources.c: In function ‘conc_source’:
 precNMC_sources.c:50:1: warning: control reaches end of non-void function [-Wreturn-type]
  }
@@ -21,8 +53,10 @@ precNMC_sources.c: In function ‘mom_source’:
 precNMC_sources.c:146:1: warning: control reaches end of non-void function [-Wreturn-type]
  }
  ^
-# Linking libudf.so because of makefile user.udf udf_names.c udf_names.o precNMC_adjust.o precNMC_sources.o
-cc -shared -lm udf_names.o precNMC_adjust.o precNMC_sources.o  -o libudf.so
+make[3]: *** [precNMC_sources.o] Error 1
+make[3]: Target `libudf.so' not remade because of errors.
 make[3]: Leaving directory `/home/aquerio/udf/libudf/lnamd64/3ddp_host'
+make[2]: *** [lnamd64] Error 2
 make[2]: Leaving directory `/home/aquerio/udf/libudf/lnamd64/3ddp_host'
+make[1]: *** [default] Error 2
 make[1]: Leaving directory `/home/aquerio/udf/libudf/lnamd64/3ddp_host'

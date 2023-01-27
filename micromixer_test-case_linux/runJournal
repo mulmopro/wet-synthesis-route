@@ -3,7 +3,7 @@
 /file/read-macros "precNMC.scm"
 
 (create-region)
-(setparameters '(aggregation/c-t aggregation/a-p) '(1.438798578 1e4))
+(setparameters '(aggregation/c-t aggregation/a-p) '(8.1846 2301441))
 (setparameters '(env_conc/ni env_conc/mn env_conc/co env_conc/nh3 env_conc/na env_conc/so4) '(0.08 0.01 0.01 0.1 0.1 0.1))
 (initialize-precNMC)
 (sourceterm "all")

@@ -53,22 +53,21 @@ along with WetSynthRoute.  If not, see <https://www.gnu.org/licenses/>.
 #define TURB_KIN_ENERGY C_K(c, t) /* 0.01011 for 2D simulations */
 
 /* Breakage model parameters */
-#define C_BR_1 0.0
-#define C_BR_2 0
-#define C_BR_3 0
+#define C_BR 1e-6
+#define GAMMA 1
 #define BR_DAUGHTER_DIST uniformDD(L_i, momIndex) /* erosionDD, parabolicDD, symmetricDD, uniformDD */
 #define C_PARABOLIC_DD 4
 #define M_EROSION_DD 5
 
 /* #define G0 1e-4 constant growth rate */
-#define K_G 1e-7 /* growth rate parameter */
+#define K_G 2.5e-10 /* growth rate parameter */
 #define N_G 1 /* growth rate parameter */
 
-#define K_J_1 30 /* nucleation rate parameter */
-#define B_J_1 2000 /* nucleation rate parameter */
-#define K_J_2 12 /* nucleation rate parameter */
-#define B_J_2 20 /* nucleation rate parameter */
-#define X_C 1e-9 /* nucleate size */
+#define K_J_1 26.17202 /* nucleation rate parameter */
+#define B_J_1 301 /* nucleation rate parameter */
+#define K_J_2 14.8698 /* nucleation rate parameter */
+#define B_J_2 30 /* nucleation rate parameter */
+#define X_C 5e-9 /* nucleate size */
 
 /* crystal properties */
 #define RHO_CRYST 3953 /* density of crystals in kg/m3 */

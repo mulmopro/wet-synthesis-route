@@ -35,11 +35,9 @@ int numOfComplexes[N_METALS] = {
 
 double kn_NMC[N_COMPLEXES]; /* defined in DEFINE_EXECUTE_ON_LOADING */
 double k_sp[N_METALS]; /* defined in DEFINE_EXECUTE_ON_LOADING */
-double pKb_NH3, Kb_NH3; /* defined in DEFINE_EXECUTE_ON_LOADING */
-double pKw, kw; /* defined in DEFINE_EXECUTE_ON_LOADING */
 double B[N_CATIONS][N_ANIONS]; /* defined in DEFINE_EXECUTE_ON_LOADING */
 double E[N_CATIONS][N_ANIONS]; /* defined in DEFINE_EXECUTE_ON_LOADING */
-
+double Aw, Bw, Cw, Dw, Ew, Fw, Gw; /* defined in DEFINE_EXECUTE_ON_LOADING */
 double D_molecular[N_UDS_C];
 
 double a_cphi[N_CP];
@@ -47,6 +45,7 @@ double a_cphi[N_CP];
 /* Aggregation model parameters to be set by the scheme variables */
 real c_adj_h;
 real A_p;
+real T;
 
 real env_conc[N_UDS_C];
 int env_c_rpIndex[N_UDS_C];
@@ -85,6 +84,14 @@ DEFINE_EXECUTE_ON_LOADING(on_loading_precNMC, libname)
 
     ln10 = log(10.0);
 
+    Aw = -4.098;
+    Bw = -3245.2;
+    Cw = 2.2362*POW10(5);
+    Dw = -3.984*POW10(7);
+    Ew = 13.957;
+    Fw = -1262.3;
+    Gw = 8.5641*POW10(5);
+
     kn_NMC[0] = POW10(2.81); kn_NMC[1] = POW10(5.08); kn_NMC[2] = POW10(6.85);
     kn_NMC[3] = POW10(8.12); kn_NMC[4] = POW10(8.93); kn_NMC[5] = POW10(9.08);
 
@@ -95,10 +102,6 @@ DEFINE_EXECUTE_ON_LOADING(on_loading_precNMC, libname)
     kn_NMC[13] = POW10(5.53); kn_NMC[14] = POW10(5.75); kn_NMC[15] = POW10(5.14);
 
     k_sp[0] = POW10(-15.22); k_sp[1] = POW10(-12.70); k_sp[2] = POW10(-14.89);
-
-    pKw = -0.000113*pow((T-273.15), 2) + 0.0371*(T-273.15) - 14.8; kw = POW10(pKw);
-    
-    pKb_NH3 = -0.0000422*pow((T-273.15), 2) + 0.0038*(T-273.15) - 4.82; Kb_NH3 = POW10(pKb_NH3);
 
     B[0][0] = 0.1056; B[0][1] = -0.080;
     B[1][0] = 0.1226; B[1][1] = -0.097;
@@ -225,7 +228,8 @@ DEFINE_ADJUST(adjust, domain)
     int interruptFlag = 0;
 
     # if !RP_NODE
-        if (RP_Variable_Exists_P("aggregation/c-t") &&
+        if (RP_Variable_Exists_P("temperature/t") &&
+            RP_Variable_Exists_P("aggregation/c-t") &&
             RP_Variable_Exists_P("aggregation/a-p") &&
             RP_Variable_Exists_P("env_conc/ni") &&
             RP_Variable_Exists_P("env_conc/mn") &&
@@ -234,6 +238,7 @@ DEFINE_ADJUST(adjust, domain)
             RP_Variable_Exists_P("env_conc/na") &&
             RP_Variable_Exists_P("env_conc/so4"))
         {
+            T = RP_Get_Real("temperature/t");
             c_adj_h = RP_Get_Real("aggregation/c-t");
             A_p = RP_Get_Real("aggregation/a-p");
             env_conc[0] = RP_Get_Real("env_conc/ni");
@@ -249,7 +254,7 @@ DEFINE_ADJUST(adjust, domain)
         }
     # endif
 
-    host_to_node_real_2(c_adj_h, A_p);
+    host_to_node_real_3(T, c_adj_h, A_p);
     host_to_node_real(env_conc, N_UDS_C);
 
     #if !RP_HOST
@@ -269,7 +274,7 @@ DEFINE_ADJUST(adjust, domain)
         double moments[2*N_NODES];
 
         double equilConc, totalConc, cationTotalConc, cationConcRatio, conc_Na;
-        double pH, superSat, nuclRate, nuclSize, dm3dt;
+        double rhoLiq, pH, superSat, nuclRate, nuclSize, dm3dt;
         double conc_OH, powConcs_NMC, k_sp_NMC;
         double epsilon, kappa, nu, reynolds_l, log10_re_l, c_phi, gamma;
 
@@ -408,8 +413,10 @@ DEFINE_ADJUST(adjust, domain)
                                     C_UDMI(c, t, i + startUDMIccr) = cationConcRatio;
                                 }
 
+                                rhoLiq = C_R(c, t);
+                                
                                 solveEquilibria(totalConcs, pConcs, cationTotalConc,
-                                    cationConcRatios, equilConcs, &pH, &superSat, &interruptFlag);
+                                    cationConcRatios, equilConcs, rhoLiq, &pH, &superSat, &interruptFlag);
 
                                 if (interruptFlag == 0)
                                 {
@@ -464,7 +471,7 @@ DEFINE_ADJUST(adjust, domain)
 
                                     C_UDMI(c, t, indexOH) = conc_OH;
                                     SUPERSATURATION = superSat;
-                                    PH = -pKw + log10(conc_OH);
+                                    PH = 14 + log10(conc_OH);
 
                                     nuclRate = nucleation(superSat);
                                 }
